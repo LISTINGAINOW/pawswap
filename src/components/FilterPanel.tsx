@@ -47,13 +47,16 @@ const genderOptions = [
   { value: 'Female' as const, label: 'Female ♀' },
 ];
 
-// Get unique breeds based on selected animal type
-function getBreeds(animalFilter: 'all' | 'dog' | 'cat'): string[] {
+// Get unique breeds with counts based on selected animal type
+function getBreeds(animalFilter: 'all' | 'dog' | 'cat'): { name: string; count: number }[] {
   const pets = animalFilter === 'all'
     ? mockPets
     : mockPets.filter((p) => p.type === animalFilter);
-  const breeds = [...new Set(pets.map((p) => p.breed))].sort();
-  return breeds;
+  const counts: Record<string, number> = {};
+  pets.forEach(p => { counts[p.breed] = (counts[p.breed] || 0) + 1; });
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 export default function FilterPanel({
@@ -140,16 +143,19 @@ export default function FilterPanel({
             </button>
             {breeds.map((breed) => (
               <button
-                key={breed}
+                key={breed.name}
                 type="button"
-                onClick={() => onBreedChange(breed)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  breedFilter === breed
+                onClick={() => onBreedChange(breed.name)}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  breedFilter === breed.name
                     ? 'bg-sage-500 text-white shadow-sm'
                     : 'bg-white text-gray-600 hover:bg-sage-100'
                 }`}
               >
-                {breed}
+                {breed.name}
+                <span className={`text-xs ${breedFilter === breed.name ? 'text-white/70' : 'text-gray-400'}`}>
+                  {breed.count}
+                </span>
               </button>
             ))}
           </div>
