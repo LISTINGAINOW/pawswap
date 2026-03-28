@@ -113,7 +113,7 @@ export default function LocationPrompt({ onLocationSet }: Props) {
 
         <p className="mt-8 text-xs text-gray-400">
           We use your location to find adoptable pets nearby.
-          <br />Your location is never stored or shared.
+          <br />Your location is stored locally on your device to remember your preference. It is never sent to Pupular servers or shared with third parties.
         </p>
       </div>
     </div>
