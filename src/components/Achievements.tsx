@@ -24,20 +24,33 @@ export interface UserStats {
 }
 
 const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first-swipe', emoji: '👆', title: 'First Swipe!', description: 'You swiped your first pet', condition: (s) => s.totalSwiped >= 1 },
-  { id: 'pet-lover', emoji: '❤️', title: 'Pet Lover', description: 'Saved 5 favorites', condition: (s) => s.totalFavorited >= 5 },
-  { id: 'cant-stop', emoji: '🔥', title: "Can't Stop", description: 'Swiped 25 pets', condition: (s) => s.totalSwiped >= 25 },
-  { id: 'super-swiper', emoji: '⚡', title: 'Super Swiper', description: 'Swiped 50 pets', condition: (s) => s.totalSwiped >= 50 },
-  { id: 'pet-whisperer', emoji: '🐾', title: 'Pet Whisperer', description: 'Swiped 100 pets', condition: (s) => s.totalSwiped >= 100 },
-  { id: 'dog-person', emoji: '🐕', title: 'Dog Person', description: 'Loved 5 dogs', condition: (s) => s.dogsLoved >= 5 },
-  { id: 'cat-person', emoji: '🐈', title: 'Cat Person', description: 'Loved 5 cats', condition: (s) => s.catsLoved >= 5 },
-  { id: 'animal-lover', emoji: '🌟', title: 'Animal Lover', description: 'Loved both dogs AND cats', condition: (s) => s.dogsLoved >= 1 && s.catsLoved >= 1 },
+  // Swipe milestones (first badge at 20, then escalating)
+  { id: 'getting-started', emoji: '👆', title: 'Getting Started', description: 'Swiped 20 pets', condition: (s) => s.totalSwiped >= 20 },
+  { id: 'cant-stop', emoji: '🔥', title: "Can't Stop", description: 'Swiped 50 pets', condition: (s) => s.totalSwiped >= 50 },
+  { id: 'super-swiper', emoji: '⚡', title: 'Super Swiper', description: 'Swiped 100 pets', condition: (s) => s.totalSwiped >= 100 },
+  { id: 'swipe-machine', emoji: '🤖', title: 'Swipe Machine', description: 'Swiped 200 pets', condition: (s) => s.totalSwiped >= 200 },
+  { id: 'pet-whisperer', emoji: '🐾', title: 'Pet Whisperer', description: 'Swiped 500 pets', condition: (s) => s.totalSwiped >= 500 },
+
+  // Favorite milestones (spaced out more)
+  { id: 'pet-lover', emoji: '❤️', title: 'Pet Lover', description: 'Saved 10 favorites', condition: (s) => s.totalFavorited >= 10 },
+  { id: 'collector', emoji: '🏆', title: 'Collector', description: 'Saved 25 favorites', condition: (s) => s.totalFavorited >= 25 },
+  { id: 'save-all', emoji: '😻', title: 'Save Them All', description: 'Saved 50 favorites', condition: (s) => s.totalFavorited >= 50 },
+
+  // Type-specific (need to actually commit to a type)
+  { id: 'dog-person', emoji: '🐕', title: 'Dog Person', description: 'Loved 10 dogs', condition: (s) => s.dogsLoved >= 10 },
+  { id: 'cat-person', emoji: '🐈', title: 'Cat Person', description: 'Loved 10 cats', condition: (s) => s.catsLoved >= 10 },
+  { id: 'animal-lover', emoji: '🌟', title: 'Animal Lover', description: 'Loved 5+ dogs AND 5+ cats', condition: (s) => s.dogsLoved >= 5 && s.catsLoved >= 5 },
+
+  // Engagement (require real effort)
   { id: 'quiz-master', emoji: '🧠', title: 'Quiz Master', description: 'Completed the personality quiz', condition: (s) => s.quizCompleted },
-  { id: 'social-butterfly', emoji: '🦋', title: 'Social Butterfly', description: 'Shared a pet with friends', condition: (s) => s.shareCount >= 1 },
+  { id: 'social-butterfly', emoji: '🦋', title: 'Social Butterfly', description: 'Shared 3 pets with friends', condition: (s) => s.shareCount >= 3 },
+  { id: 'influencer', emoji: '📣', title: 'Influencer', description: 'Shared 10 pets', condition: (s) => s.shareCount >= 10 },
+
+  // Streak milestones (escalating)
   { id: 'streak-3', emoji: '🔥', title: 'On Fire', description: '3-day streak', condition: (s) => s.streakDays >= 3 },
   { id: 'streak-7', emoji: '💎', title: 'Diamond Streak', description: '7-day streak', condition: (s) => s.streakDays >= 7 },
-  { id: 'collector', emoji: '🏆', title: 'Collector', description: 'Saved 15 favorites', condition: (s) => s.totalFavorited >= 15 },
-  { id: 'save-all', emoji: '😻', title: 'Save Them All', description: 'Loved every single pet', condition: (s) => s.totalFavorited >= 20 },
+  { id: 'streak-14', emoji: '👑', title: 'Royalty', description: '14-day streak', condition: (s) => s.streakDays >= 14 },
+  { id: 'streak-30', emoji: '🏅', title: 'Legendary', description: '30-day streak', condition: (s) => s.streakDays >= 30 },
 ];
 
 function getUnlockedAchievements(stats: UserStats): string[] {

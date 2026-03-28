@@ -10,13 +10,13 @@ interface Props {
   currentPet: Pet | null;
 }
 
-const MILESTONES = [10, 25, 50, 75, 100];
+const MILESTONES = [20, 50, 100, 200, 500];
 const MILESTONE_MSGS = [
-  "You're getting the hang of this!",
-  "Quarter century of pets! 🐾",
-  "50 pets! You're on a roll!",
-  "75! Almost at 💯",
-  "💯 pets swiped! Legend status!",
+  "You're getting the hang of this! 🐾",
+  "50 pets! You're on a roll! 🔥",
+  "💯 pets swiped! Certified pet obsessed",
+  "200! You've seen more pets than most shelters 🤯",
+  "500?! You ARE the algorithm now 👑",
 ];
 
 export default function SwipeStats({ totalSwiped, favorites, currentPet }: Props) {
