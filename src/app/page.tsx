@@ -7,6 +7,7 @@ import OnboardingSlides from '@/components/OnboardingSlides';
 import LocationPrompt from '@/components/LocationPrompt';
 import { Pet, mockPets } from '@/data/pets';
 import { useStreak } from '@/components/DailyStreak';
+import { useAchievements, AchievementBadge, TrophyCase, UserStats } from '@/components/Achievements';
 import { hapticLight } from '@/lib/haptics';
 
 // Lazy load heavy components
@@ -26,6 +27,8 @@ const Confetti = dynamic(() => import('@/components/Confetti'), { ssr: false });
 const SuccessStories = dynamic(() => import('@/components/SuccessStories'), { ssr: false });
 const DailyStreak = dynamic(() => import('@/components/DailyStreak'), { ssr: false });
 const PetCompare = dynamic(() => import('@/components/PetCompare'), { ssr: false });
+const SwipeStats = dynamic(() => import('@/components/SwipeStats'), { ssr: false });
+const QuickReactions = dynamic(() => import('@/components/QuickReactions'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -63,7 +66,23 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [comparePets, setComparePets] = useState<[Pet, Pet] | null>(null);
+  const [showTrophyCase, setShowTrophyCase] = useState(false);
+  const [totalSwiped, setTotalSwiped] = useState(0);
+  const [shareCount, setShareCount] = useState(0);
+  const [quizDone, setQuizDone] = useState(false);
   const { streak, recordView } = useStreak();
+
+  // Achievement tracking
+  const userStats: UserStats = {
+    totalSwiped,
+    totalFavorited: favorites.length,
+    dogsLoved: favorites.filter(p => p.type === 'dog').length,
+    catsLoved: favorites.filter(p => p.type === 'cat').length,
+    streakDays: streak.currentStreak,
+    quizCompleted: quizDone,
+    shareCount,
+  };
+  const { newAchievement, dismissAchievement, unlockedIds, allAchievements } = useAchievements(userStats);
 
   // Mount check + restore from localStorage
   useEffect(() => {
@@ -97,6 +116,14 @@ export default function Home() {
       const savedDark = localStorage.getItem('pupular-dark');
       if (savedDark === 'true') setDarkMode(true);
     } catch { /* ignore */ }
+    // Restore stats
+    try {
+      const savedSwiped = localStorage.getItem('pupular-total-swiped');
+      if (savedSwiped) setTotalSwiped(parseInt(savedSwiped));
+      const savedShares = localStorage.getItem('pupular-share-count');
+      if (savedShares) setShareCount(parseInt(savedShares));
+      if (localStorage.getItem('pupular-quiz-done')) setQuizDone(true);
+    } catch { /* ignore */ }
   }, []);
 
   // Persist favorites
@@ -115,6 +142,14 @@ export default function Home() {
     if (darkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [darkMode, mounted]);
+
+  // Persist stats
+  useEffect(() => {
+    if (mounted) localStorage.setItem('pupular-total-swiped', String(totalSwiped));
+  }, [totalSwiped, mounted]);
+  useEffect(() => {
+    if (mounted) localStorage.setItem('pupular-share-count', String(shareCount));
+  }, [shareCount, mounted]);
 
   // Fetch pets from API when location changes
   const fetchPets = useCallback(async (loc: UserLocation) => {
@@ -171,6 +206,7 @@ export default function Home() {
       setFavorites((prev) => [...prev, pet]);
       setLastSaved(pet);
       setShowConfetti(true);
+      setTotalSwiped(n => n + 1);
       recordView();
     }
   }, [filteredPets, recordView]);
@@ -179,6 +215,7 @@ export default function Home() {
     const pet = filteredPets[0];
     if (pet) {
       setPassed((prev) => [...prev, pet.id]);
+      setTotalSwiped(n => n + 1);
       recordView();
     }
   }, [filteredPets, recordView]);
@@ -235,6 +272,8 @@ export default function Home() {
       <PetQuiz
         onComplete={(matches) => {
           setQuizMatches(matches);
+          setQuizDone(true);
+          localStorage.setItem('pupular-quiz-done', 'true');
           setView('quiz-results');
         }}
         onSkip={() => setView('swipe')}
@@ -324,6 +363,13 @@ export default function Home() {
             className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
           >
             {darkMode ? '☀️' : '🌙'}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowTrophyCase(true); hapticLight(); }}
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+          >
+            🏆
           </button>
         </div>
         <div className="text-center">
@@ -447,6 +493,14 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Quick reactions */}
+      {filteredPets.length > 0 && (
+        <QuickReactions petName={filteredPets[0]?.name || ''} />
+      )}
+
+      {/* Swipe stats + milestones */}
+      <SwipeStats totalSwiped={totalSwiped} favorites={favorites.length} currentPet={filteredPets[0] || null} />
+
       {/* Bottom bar */}
       <footer className="flex items-center justify-center gap-6 px-5 pb-6 pt-2">
         {passed.length > 0 && (
@@ -488,6 +542,12 @@ export default function Home() {
 
       {/* Pet compare modal (#7) */}
       {comparePets && <PetCompare pets={comparePets} onClose={() => setComparePets(null)} />}
+
+      {/* Achievement badge popup */}
+      <AchievementBadge achievement={newAchievement} onDismiss={dismissAchievement} />
+
+      {/* Trophy case modal */}
+      {showTrophyCase && <TrophyCase unlockedIds={unlockedIds} onClose={() => setShowTrophyCase(false)} />}
 
       {/* Keyboard shortcuts (desktop only) */}
       <KeyboardHints
