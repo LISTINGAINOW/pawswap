@@ -92,7 +92,7 @@ function mapRescueGroupsPet(animal: RescueGroupsAnimal): Pet {
 }
 
 export async function searchRescueGroups(params: SearchParams): Promise<Pet[]> {
-  const apiKey = process.env.NEXT_PUBLIC_RESCUEGROUPS_API_KEY || process.env.RESCUEGROUPS_API_KEY;
+  const apiKey = process.env.RESCUEGROUPS_API_KEY;
   if (!apiKey) {
     console.warn('RescueGroups API key not set');
     return [];
