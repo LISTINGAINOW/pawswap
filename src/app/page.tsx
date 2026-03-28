@@ -125,6 +125,18 @@ export default function Home() {
       if (savedShares) setShareCount(parseInt(savedShares));
       if (localStorage.getItem('pupular-quiz-done')) setQuizDone(true);
     } catch { /* ignore */ }
+    // Restore filters
+    try {
+      const savedFilters = localStorage.getItem('pupular-filters');
+      if (savedFilters) {
+        const f = JSON.parse(savedFilters);
+        if (f.animalFilter) setAnimalFilter(f.animalFilter);
+        if (f.sizeFilter) setSizeFilter(f.sizeFilter);
+        if (f.breedFilter) setBreedFilter(f.breedFilter);
+        if (f.ageFilter) setAgeFilter(f.ageFilter);
+        if (f.genderFilter) setGenderFilter(f.genderFilter);
+      }
+    } catch { /* ignore */ }
   }, []);
 
   // Persist favorites
