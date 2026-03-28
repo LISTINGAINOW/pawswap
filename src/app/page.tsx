@@ -1,21 +1,24 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Heart, RotateCcw, SlidersHorizontal, MapPin } from 'lucide-react';
-import SwipeCard from '@/components/SwipeCard';
-import PetDetail from '@/components/PetDetail';
-import FavoritesList from '@/components/FavoritesList';
-import FilterPanel from '@/components/FilterPanel';
-import LocationPrompt from '@/components/LocationPrompt';
 import OnboardingSlides from '@/components/OnboardingSlides';
-import KeyboardHints from '@/components/KeyboardHints';
-import MatchToast from '@/components/MatchToast';
-import PetQuiz from '@/components/PetQuiz';
-import TrendingBar from '@/components/TrendingBar';
-import AdoptionTips from '@/components/AdoptionTips';
-import PetOfTheDay from '@/components/PetOfTheDay';
-import QuizResults from '@/components/QuizResults';
+import LocationPrompt from '@/components/LocationPrompt';
 import { mockPets, Pet } from '@/data/pets';
+
+// Lazy load heavy components
+const SwipeCard = dynamic(() => import('@/components/SwipeCard'), { ssr: false });
+const PetDetail = dynamic(() => import('@/components/PetDetail'), { ssr: false });
+const FavoritesList = dynamic(() => import('@/components/FavoritesList'), { ssr: false });
+const FilterPanel = dynamic(() => import('@/components/FilterPanel'), { ssr: false });
+const KeyboardHints = dynamic(() => import('@/components/KeyboardHints'), { ssr: false });
+const MatchToast = dynamic(() => import('@/components/MatchToast'), { ssr: false });
+const PetQuiz = dynamic(() => import('@/components/PetQuiz'), { ssr: false });
+const TrendingBar = dynamic(() => import('@/components/TrendingBar'), { ssr: false });
+const AdoptionTips = dynamic(() => import('@/components/AdoptionTips'), { ssr: false });
+const PetOfTheDay = dynamic(() => import('@/components/PetOfTheDay'), { ssr: false });
+const QuizResults = dynamic(() => import('@/components/QuizResults'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -96,7 +99,6 @@ export default function Home() {
 
   const handleUndo = () => {
     if (passed.length > 0) {
-      const lastPassedId = passed[passed.length - 1];
       setPassed((prev) => prev.slice(0, -1));
       setCurrentIndex((i) => Math.max(0, i - 1));
     }
