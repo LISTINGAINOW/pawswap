@@ -38,11 +38,11 @@ export default function QuizResultPage({ resultType, meta }: Props) {
 
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/quiz/result?type=${resultType}`
-    : `https://pawnder.app/quiz/result?type=${resultType}`;
+    : `https://pupular.app/quiz/result?type=${resultType}`;
 
   const quizUrl = typeof window !== 'undefined'
     ? `${window.location.origin}`
-    : 'https://pawnder.app';
+    : 'https://pupular.app';
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -99,7 +99,7 @@ export default function QuizResultPage({ resultType, meta }: Props) {
               href="/"
               className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-sage-500 py-3 font-semibold text-white transition hover:bg-sage-600"
             >
-              Open Pawnder
+              Open Pupular
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

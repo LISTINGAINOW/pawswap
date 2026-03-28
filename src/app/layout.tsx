@@ -8,13 +8,13 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'Pawnder — Find Your Perfect Pet',
-  description: 'Swipe through adorable adoptable pets near you. Dogs, cats, and more — find your new best friend with Pawnder.',
+  title: 'Pupular — Find Your Perfect Pet',
+  description: 'Swipe through adorable adoptable pets near you. Dogs, cats, and more — find your new best friend with Pupular.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pawnder',
+    title: 'Pupular',
   },
 };
 

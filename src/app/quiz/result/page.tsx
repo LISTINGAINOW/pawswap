@@ -53,12 +53,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const meta = resultMeta[type] || resultMeta['cuddly-dog'];
 
   return {
-    title: `${meta.emoji} You're a ${meta.title}! — Pawnder`,
-    description: `${meta.description} Find adoptable pets that match your vibe on Pawnder.`,
+    title: `${meta.emoji} You're a ${meta.title}! — Pupular`,
+    description: `${meta.description} Find adoptable pets that match your vibe on Pupular.`,
     openGraph: {
       title: `${meta.emoji} You're a ${meta.title}!`,
       description: `${meta.description} Take the quiz and find your perfect pet!`,
-      siteName: 'Pawnder',
+      siteName: 'Pupular',
       type: 'website',
       images: [`/api/og?type=${type}`],
     },

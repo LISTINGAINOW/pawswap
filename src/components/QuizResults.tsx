@@ -18,7 +18,7 @@ export default function QuizResults({ matches, resultType, onStartSwiping, onRet
     if (navigator.share) {
       try {
         await navigator.share({
-          title: '🐾 My Pawnder Result!',
+          title: '🐾 My Pupular Result!',
           text: 'I just found my perfect pet match! What\'s yours?',
           url,
         });

@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             fontWeight: 700,
           }}
         >
-          🐾 Take the quiz at Pawnder
+          🐾 Take the quiz at Pupular
         </div>
 
         {/* Watermark */}
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
             color: '#999',
           }}
         >
-          pawnder.app
+          pupular.app
         </div>
       </div>
     ),

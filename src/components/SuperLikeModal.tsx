@@ -16,7 +16,7 @@ export default function SuperLikeModal({ pet, onClose, onSend }: Props) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState(
-    `Hi! I found ${pet.name} on Pawnder and I'm very interested in adopting. I'd love to schedule a visit to meet ${pet.gender === 'Male' ? 'him' : 'her'}. When would be a good time?`
+    `Hi! I found ${pet.name} on Pupular and I'm very interested in adopting. I'd love to schedule a visit to meet ${pet.gender === 'Male' ? 'him' : 'her'}. When would be a good time?`
   );
   const [sent, setSent] = useState(false);
 

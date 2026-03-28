@@ -55,7 +55,7 @@ export default function LocationPrompt({ onLocationSet }: Props) {
       <div className="w-full max-w-sm text-center">
         {/* Logo */}
         <div className="mb-2 text-6xl">🐾</div>
-        <h1 className="text-4xl font-bold text-sage-700">Pawnder</h1>
+        <h1 className="text-4xl font-bold text-sage-700">Pupular</h1>
         <p className="mt-2 text-lg text-gray-500">Find your new best friend</p>
 
         <div className="mt-10 space-y-4">
