@@ -92,7 +92,7 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
       dragElastic={0.9}
       onDragEnd={handleDragEnd}
       animate={{ x: exitX }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 28, mass: 0.8 }}
       role={isTop ? 'article' : undefined}
       aria-label={isTop ? `${pet.name}, ${pet.breed}, ${pet.age}, ${pet.gender}` : undefined}
       aria-roledescription={isTop ? 'swipe card' : undefined}

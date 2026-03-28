@@ -71,6 +71,7 @@ export default function Home() {
   const [shareCount, setShareCount] = useState(0);
   const [quizDone, setQuizDone] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [heartPulse, setHeartPulse] = useState(false);
   const { streak, recordView } = useStreak();
 
   // Achievement tracking
@@ -233,6 +234,8 @@ export default function Home() {
       setTotalSwiped(n => n + 1);
       recordView();
       setAnnouncement(`Saved ${pet.name} to favorites`);
+      setHeartPulse(true);
+      setTimeout(() => setHeartPulse(false), 600);
     }
   }, [filteredPets, recordView]);
 
@@ -419,9 +422,10 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setView('favorites')}
+          aria-label={`Favorites${favorites.length > 0 ? `, ${favorites.length} saved` : ''}`}
           className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition hover:shadow-md"
         >
-          <Heart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+          <Heart className={`h-5 w-5 transition-all ${favorites.length > 0 ? 'fill-red-500 text-red-500' : 'text-gray-600'} ${heartPulse ? 'animate-heart-pulse' : ''}`} />
           {favorites.length > 0 && (
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
               {favorites.length}
