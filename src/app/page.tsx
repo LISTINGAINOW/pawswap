@@ -447,42 +447,78 @@ export default function Home() {
             </div>
           ) : filteredPets.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
-              <div className="text-6xl">🐾</div>
-              <h2 className="mt-4 text-2xl font-bold text-gray-800">All caught up!</h2>
-              <p className="mt-2 text-gray-500">
-                {favorites.length > 0
-                  ? `You've saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'}. Check your favorites!`
-                  : 'No more pets to show. Try changing your filters or check back later!'}
-              </p>
-              <div className="mt-6 flex flex-col gap-3">
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={resetAll}
-                    className="flex items-center gap-2 rounded-2xl bg-sage-100 px-6 py-3 font-semibold text-sage-700 hover:bg-sage-200"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Start Over
-                  </button>
-                  {favorites.length > 0 && (
+              {/* Differentiate: filters active vs all swiped */}
+              {(animalFilter !== 'all' || sizeFilter !== 'all' || breedFilter !== 'all' || ageFilter !== 'all' || genderFilter !== 'all') ? (
+                <>
+                  <div className="text-6xl">🔍</div>
+                  <h2 className="mt-4 text-2xl font-bold text-gray-800">No matches found</h2>
+                  <p className="mt-2 text-gray-500">
+                    Try broadening your filters — there are lots of amazing pets waiting!
+                  </p>
+                  <div className="mt-6 flex flex-col gap-3">
                     <button
                       type="button"
-                      onClick={() => setView('favorites')}
-                      className="flex items-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
+                      onClick={() => {
+                        setAnimalFilter('all');
+                        setSizeFilter('all');
+                        setBreedFilter('all');
+                        setAgeFilter('all');
+                        setGenderFilter('all');
+                      }}
+                      className="flex items-center justify-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
                     >
-                      <Heart className="h-4 w-4" />
-                      Favorites
+                      <RefreshCw className="h-4 w-4" />
+                      Clear All Filters
                     </button>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setView('quiz')}
-                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-sage-200 px-6 py-3 font-semibold text-sage-600 hover:bg-sage-50"
-                >
-                  🧠 Retake Quiz
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => setView('filters')}
+                      className="flex items-center justify-center gap-2 rounded-2xl border-2 border-sage-200 px-6 py-3 font-semibold text-sage-600 hover:bg-sage-50"
+                    >
+                      🎛️ Adjust Filters
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-6xl">🎉</div>
+                  <h2 className="mt-4 text-2xl font-bold text-gray-800">You&apos;re all caught up!</h2>
+                  <p className="mt-2 text-gray-500">
+                    {favorites.length > 0
+                      ? `Amazing — you saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'}! Time to reach out to a shelter.`
+                      : "You've seen all the pets nearby. Start over to find more!"}
+                  </p>
+                  <div className="mt-6 flex flex-col gap-3">
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={resetAll}
+                        className="flex items-center gap-2 rounded-2xl bg-sage-100 px-6 py-3 font-semibold text-sage-700 hover:bg-sage-200"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Start Over
+                      </button>
+                      {favorites.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setView('favorites')}
+                          className="flex items-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
+                        >
+                          <Heart className="h-4 w-4" />
+                          My Favorites
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setView('quiz')}
+                      className="flex items-center justify-center gap-2 rounded-2xl border-2 border-sage-200 px-6 py-3 font-semibold text-sage-600 hover:bg-sage-50"
+                    >
+                      {quizDone ? '🧠 Retake Quiz' : '🧠 Take the Quiz'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <>

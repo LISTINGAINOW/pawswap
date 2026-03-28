@@ -81,17 +81,22 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
         </div>
 
         {favorites.length === 0 ? (
-          <div className="mt-20 text-center">
-            <div className="animate-float text-7xl">🐾</div>
-            <h2 className="mt-6 text-xl font-semibold text-gray-700">No favorites yet</h2>
-            <p className="mt-2 text-gray-500">Swipe right on pets you love and they&apos;ll show up here!</p>
-            <button
-              type="button"
-              onClick={onBack}
-              className="mt-8 rounded-2xl bg-sage-500 px-8 py-3.5 font-semibold text-white shadow-sm transition hover:bg-sage-600 hover:shadow-md"
-            >
-              Start Swiping 🐾
-            </button>
+          <div className="mt-20 flex flex-col items-center text-center">
+            <div className="animate-bounce text-7xl">🐾</div>
+            <h2 className="mt-6 text-xl font-semibold text-gray-700">No favorites yet!</h2>
+            <p className="mt-2 max-w-xs text-gray-500">
+              Swipe right on pets you love and they&apos;ll appear here. Your perfect match is out there!
+            </p>
+            <div className="mt-8 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={onBack}
+                className="rounded-2xl bg-sage-500 px-8 py-3.5 font-semibold text-white shadow-sm transition hover:bg-sage-600 hover:shadow-md"
+              >
+                Start Swiping 🐾
+              </button>
+              <p className="text-xs text-gray-400">Tip: Swipe right or press the ❤️ button to save pets</p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
