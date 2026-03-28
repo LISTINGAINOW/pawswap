@@ -15,6 +15,8 @@ import { mockPets, Pet } from '@/data/pets';
 type View = 'onboarding' | 'location' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
 type SizeFilter = 'all' | 'Small' | 'Medium' | 'Large' | 'Extra Large';
+type AgeFilter = 'all' | 'baby' | 'young' | 'adult' | 'senior';
+type GenderFilter = 'all' | 'Male' | 'Female';
 
 interface UserLocation {
   lat: number;
@@ -37,10 +39,31 @@ export default function Home() {
   const [lastSaved, setLastSaved] = useState<Pet | null>(null);
   const [animalFilter, setAnimalFilter] = useState<AnimalFilter>('all');
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all');
+  const [breedFilter, setBreedFilter] = useState<string>('all');
+  const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+
+  // Age matching helper
+  const matchesAge = (petAge: string, filter: AgeFilter): boolean => {
+    if (filter === 'all') return true;
+    const lower = petAge.toLowerCase();
+    const months = lower.includes('month');
+    const years = parseInt(lower) || 0;
+    switch (filter) {
+      case 'baby': return months || years < 1;
+      case 'young': return !months && years >= 1 && years <= 3;
+      case 'adult': return !months && years > 3 && years <= 7;
+      case 'senior': return !months && years > 7;
+      default: return true;
+    }
+  };
 
   const filteredPets = mockPets.filter((pet) => {
     if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
     if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
+    if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
+    if (!matchesAge(pet.age, ageFilter)) return false;
+    if (genderFilter !== 'all' && pet.gender !== genderFilter) return false;
     if (favorites.some((f) => f.id === pet.id)) return false;
     if (passed.includes(pet.id)) return false;
     return true;
@@ -122,16 +145,28 @@ export default function Home() {
       <FilterPanel
         animalFilter={animalFilter}
         sizeFilter={sizeFilter}
+        breedFilter={breedFilter}
+        ageFilter={ageFilter}
+        genderFilter={genderFilter}
         onAnimalChange={setAnimalFilter}
         onSizeChange={setSizeFilter}
+        onBreedChange={setBreedFilter}
+        onAgeChange={setAgeFilter}
+        onGenderChange={setGenderFilter}
         onBack={() => setView('swipe')}
         onReset={() => {
           setAnimalFilter('all');
           setSizeFilter('all');
+          setBreedFilter('all');
+          setAgeFilter('all');
+          setGenderFilter('all');
         }}
         resultCount={mockPets.filter((pet) => {
           if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
           if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
+          if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
+          if (!matchesAge(pet.age, ageFilter)) return false;
+          if (genderFilter !== 'all' && pet.gender !== genderFilter) return false;
           return true;
         }).length}
       />
