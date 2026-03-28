@@ -1,0 +1,53 @@
+{
+  "appName": "Pupular — Swipe to Adopt Pets",
+  "subtitle": "Find & Adopt Pets Near You",
+  "description": "Meet your new best friend.\n\nPupular makes pet adoption fun and easy. Swipe through real adoptable dogs and cats from shelters and rescues near you — just like your favorite dating app, but for pets.\n\nHOW IT WORKS\n• Swipe right on pets you love, left to pass\n• Take our pet personality quiz to find your perfect match\n• Save favorites and contact shelters directly\n• Browse hundreds of real pets available for adoption today\n\nFEATURES\n• Real-time pet listings from local shelters via RescueGroups\n• Smart matching based on your lifestyle and preferences\n• Detailed pet profiles with photos, age, breed, and temperament\n• Direct links to contact shelters and start the adoption process\n• Works offline — your favorites are always available\n\nEvery pet in Pupular is a real animal waiting for a loving home. No breeders, no pet stores — just shelter and rescue animals who need you.\n\nDownload Pupular and find your new best friend today.",
+  "keywords": [
+    "pet adoption",
+    "adopt a dog",
+    "adopt a cat",
+    "shelter pets",
+    "rescue dogs",
+    "rescue cats",
+    "animal shelter",
+    "pet finder",
+    "adoptable pets",
+    "dog adoption",
+    "cat adoption",
+    "rescue animals",
+    "pet rescue",
+    "adopt don't shop",
+    "animal rescue"
+  ],
+  "category": "Lifestyle",
+  "secondaryCategory": "Social Networking",
+  "ageRating": "4+",
+  "price": "Free",
+  "bundleId": "app.pupular.www",
+  "version": "1.0.0",
+  "copyright": "© 2026 Pupular",
+  "privacyPolicyUrl": "https://www.pupular.app/privacy",
+  "supportUrl": "https://www.pupular.app/about",
+  "marketingUrl": "https://www.pupular.app",
+  "whatsNew": "Welcome to Pupular! 🐾\n\nVersion 1.0 — Initial Launch\n• Swipe through adoptable pets from shelters near you\n• Pet personality quiz to find your perfect match\n• Save favorites and contact shelters directly\n• Offline support so your favorites are always available",
+  "screenshots": [
+    {
+      "filename": "screenshot-1-hero.png",
+      "description": "Swipe through adorable adoptable pets near you",
+      "displayOrder": 1
+    },
+    {
+      "filename": "screenshot-2-quiz.png",
+      "description": "Take the pet personality quiz to find your perfect match",
+      "displayOrder": 2
+    },
+    {
+      "filename": "screenshot-3-favorites.png",
+      "description": "Save your favorites and connect with shelters directly",
+      "displayOrder": 3
+    }
+  ],
+  "appStoreUrl": "https://apps.apple.com/app/pupular/id0000000000",
+  "supportedDevices": ["iPhone", "iPad"],
+  "requiredOSVersion": "16.0"
+}

@@ -10,8 +10,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'Pupular — Find Your Perfect Pet',
-  description: 'Swipe through adorable adoptable pets near you. Dogs, cats, and more — find your new best friend with Pupular.',
+  title: 'Pupular — Swipe to Adopt Pets Near You',
+  description: 'Swipe to adopt pets near you. Browse real dogs & cats from local shelters, take a personality quiz, and connect with rescues. Free on iOS.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -28,6 +28,27 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Pupular',
   },
+  openGraph: {
+    title: 'Pupular — Swipe to Adopt Pets Near You',
+    description: 'Browse real adoptable dogs & cats from local shelters. Swipe, match, and connect with rescues near you. Free on iOS.',
+    url: 'https://www.pupular.app',
+    siteName: 'Pupular',
+    images: [
+      {
+        url: 'https://www.pupular.app/screenshots/screenshot-1-hero.png',
+        width: 1290,
+        height: 2796,
+        alt: 'Pupular — Swipe through adoptable pets near you',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pupular — Swipe to Adopt Pets Near You',
+    description: 'Browse real adoptable dogs & cats from local shelters. Swipe, match, and connect with rescues near you.',
+    images: ['https://www.pupular.app/screenshots/screenshot-1-hero.png'],
+  },
 };
 
 export const viewport: Viewport = {
@@ -36,6 +57,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: '#f6f7f4',
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -45,6 +67,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={nunito.variable}>
+      <head>
+        <link rel="preconnect" href="https://api.rescuegroups.org" />
+        <link rel="dns-prefetch" href="https://api.rescuegroups.org" />
+      </head>
       <body className="font-sans">
         <a
           href="#main-content"
