@@ -10,9 +10,11 @@ import LocationPrompt from '@/components/LocationPrompt';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import KeyboardHints from '@/components/KeyboardHints';
 import MatchToast from '@/components/MatchToast';
+import PetQuiz from '@/components/PetQuiz';
+import QuizResults from '@/components/QuizResults';
 import { mockPets, Pet } from '@/data/pets';
 
-type View = 'onboarding' | 'location' | 'swipe' | 'favorites' | 'filters';
+type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
 type SizeFilter = 'all' | 'Small' | 'Medium' | 'Large' | 'Extra Large';
 type AgeFilter = 'all' | 'baby' | 'young' | 'adult' | 'senior';
@@ -42,6 +44,7 @@ export default function Home() {
   const [breedFilter, setBreedFilter] = useState<string>('all');
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+  const [quizMatches, setQuizMatches] = useState<Pet[]>([]);
 
   // Age matching helper
   const matchesAge = (petAge: string, filter: AgeFilter): boolean => {
@@ -105,7 +108,7 @@ export default function Home() {
 
   const handleLocationSet = (loc: UserLocation) => {
     setLocation(loc);
-    setView('swipe');
+    setView('quiz');
   };
 
   // Onboarding
@@ -118,6 +121,31 @@ export default function Home() {
           }
           setView('location');
         }}
+      />
+    );
+  }
+
+  // Quiz
+  if (view === 'quiz') {
+    return (
+      <PetQuiz
+        onComplete={(matches) => {
+          setQuizMatches(matches);
+          setView('quiz-results');
+        }}
+        onSkip={() => setView('swipe')}
+      />
+    );
+  }
+
+  // Quiz results
+  if (view === 'quiz-results') {
+    return (
+      <QuizResults
+        matches={quizMatches}
+        onStartSwiping={() => setView('swipe')}
+        onRetakeQuiz={() => setView('quiz')}
+        onSelectPet={(pet) => setDetailPet(pet)}
       />
     );
   }
