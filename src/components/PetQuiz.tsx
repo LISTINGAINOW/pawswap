@@ -116,7 +116,7 @@ export default function PetQuiz({ onComplete, onSkip }: Props) {
   const [answers, setAnswers] = useState<Answer[]>([]);
 
   const question = questions[currentQ];
-  const progress = ((currentQ) / questions.length) * 100;
+  const progress = ((currentQ + 1) / questions.length) * 100;
 
   const handleAnswer = (value: string) => {
     const newAnswers = [...answers, { question: question.id, value }];
