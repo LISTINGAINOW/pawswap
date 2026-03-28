@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { Heart, X, MapPin, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, X, MapPin, Info, Share2 } from 'lucide-react';
+import { hapticMedium, hapticSuccess } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 
@@ -27,10 +28,12 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
+      hapticSuccess();
       setExitX(500);
       setShowOverlay('like');
       setTimeout(onSwipeRight, 300);
     } else if (info.offset.x < -threshold) {
+      hapticMedium();
       setExitX(-500);
       setShowOverlay('nope');
       setTimeout(onSwipeLeft, 300);
@@ -39,13 +42,29 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
 
   const handleButtonSwipe = (direction: 'left' | 'right') => {
     if (direction === 'right') {
+      hapticSuccess();
       setExitX(500);
       setShowOverlay('like');
       setTimeout(onSwipeRight, 300);
     } else {
+      hapticMedium();
       setExitX(-500);
       setShowOverlay('nope');
       setTimeout(onSwipeLeft, 300);
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    hapticMedium();
+    const shareText = `🐾 Meet ${pet.name}! ${pet.breed}, ${pet.age} — looking for a forever home.\n\nFind adoptable pets on Pupular:`;
+    const shareUrl = 'https://www.pupular.app';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: `Meet ${pet.name} on Pupular`, text: shareText, url: shareUrl });
+      } catch { /* cancelled */ }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
     }
   };
 
@@ -176,7 +195,7 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
 
           {/* Action buttons */}
           {isTop && (
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => handleButtonSwipe('left')}
@@ -187,9 +206,16 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
               <button
                 type="button"
                 onClick={onInfo}
-                className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-sky-200 bg-white text-sky-400 shadow-sm transition-all hover:scale-110 hover:bg-sky-50 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-sky-200 bg-white text-sky-400 shadow-sm transition-all hover:scale-110 hover:bg-sky-50 active:scale-95"
               >
-                <Info className="h-5 w-5" />
+                <Info className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-purple-200 bg-white text-purple-400 shadow-sm transition-all hover:scale-110 hover:bg-purple-50 active:scale-95"
+              >
+                <Share2 className="h-4 w-4" />
               </button>
               <button
                 type="button"

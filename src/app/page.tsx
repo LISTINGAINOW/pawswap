@@ -6,6 +6,8 @@ import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2 } from 
 import OnboardingSlides from '@/components/OnboardingSlides';
 import LocationPrompt from '@/components/LocationPrompt';
 import { Pet, mockPets } from '@/data/pets';
+import { useStreak } from '@/components/DailyStreak';
+import { hapticLight } from '@/lib/haptics';
 
 // Lazy load heavy components
 const SwipeCard = dynamic(() => import('@/components/SwipeCard'), { ssr: false });
@@ -20,6 +22,10 @@ const AdoptionTips = dynamic(() => import('@/components/AdoptionTips'), { ssr: f
 const PetOfTheDay = dynamic(() => import('@/components/PetOfTheDay'), { ssr: false });
 const QuizResults = dynamic(() => import('@/components/QuizResults'), { ssr: false });
 const DemoBanner = dynamic(() => import('@/components/DemoBanner'), { ssr: false });
+const Confetti = dynamic(() => import('@/components/Confetti'), { ssr: false });
+const SuccessStories = dynamic(() => import('@/components/SuccessStories'), { ssr: false });
+const DailyStreak = dynamic(() => import('@/components/DailyStreak'), { ssr: false });
+const PetCompare = dynamic(() => import('@/components/PetCompare'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -54,6 +60,10 @@ export default function Home() {
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [quizMatches, setQuizMatches] = useState<Pet[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [comparePets, setComparePets] = useState<[Pet, Pet] | null>(null);
+  const { streak, recordView } = useStreak();
 
   // Mount check + restore from localStorage
   useEffect(() => {
@@ -72,20 +82,39 @@ export default function Home() {
       if (savedLoc) {
         const loc = JSON.parse(savedLoc);
         setLocation(loc);
-        // Skip to swipe if we have location
         if (localStorage.getItem('pupular-onboarded')) {
           setView('swipe');
         }
       }
     } catch { /* ignore */ }
+    // Restore swipe progress (#5)
+    try {
+      const savedPassed = localStorage.getItem('pupular-passed');
+      if (savedPassed) setPassed(JSON.parse(savedPassed));
+    } catch { /* ignore */ }
+    // Restore dark mode (#6)
+    try {
+      const savedDark = localStorage.getItem('pupular-dark');
+      if (savedDark === 'true') setDarkMode(true);
+    } catch { /* ignore */ }
   }, []);
 
   // Persist favorites
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('pupular-favorites', JSON.stringify(favorites));
-    }
+    if (mounted) localStorage.setItem('pupular-favorites', JSON.stringify(favorites));
   }, [favorites, mounted]);
+
+  // Persist swipe progress (#5)
+  useEffect(() => {
+    if (mounted) localStorage.setItem('pupular-passed', JSON.stringify(passed));
+  }, [passed, mounted]);
+
+  // Persist dark mode (#6)
+  useEffect(() => {
+    if (mounted) localStorage.setItem('pupular-dark', String(darkMode));
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [darkMode, mounted]);
 
   // Fetch pets from API when location changes
   const fetchPets = useCallback(async (loc: UserLocation) => {
@@ -141,15 +170,18 @@ export default function Home() {
     if (pet) {
       setFavorites((prev) => [...prev, pet]);
       setLastSaved(pet);
+      setShowConfetti(true);
+      recordView();
     }
-  }, [filteredPets]);
+  }, [filteredPets, recordView]);
 
   const handleSwipeLeft = useCallback(() => {
     const pet = filteredPets[0];
     if (pet) {
       setPassed((prev) => [...prev, pet.id]);
+      recordView();
     }
-  }, [filteredPets]);
+  }, [filteredPets, recordView]);
 
   const handleUndo = () => {
     if (passed.length > 0) {
@@ -235,6 +267,7 @@ export default function Home() {
         onRemove={handleRemoveFavorite}
         onBack={() => setView('swipe')}
         onSelect={(pet) => setDetailPet(pet)}
+        onCompare={(pets) => { setComparePets(pets); setView('swipe'); }}
       />
     );
   }
@@ -274,16 +307,25 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-sage-50">
+    <div className={`flex min-h-screen flex-col ${darkMode ? 'bg-gray-900' : 'bg-sage-50'}`}>
       {/* Header */}
-      <header className="flex items-center justify-between px-5 pb-2 pt-4">
-        <button
-          type="button"
-          onClick={() => setView('filters')}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition hover:shadow-md"
-        >
-          <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-        </button>
+      <header className={`flex items-center justify-between px-5 pb-2 pt-4 ${darkMode ? 'bg-gray-900' : ''}`}>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView('filters')}
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-600'}`}
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDarkMode(!darkMode); hapticLight(); }}
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+          >
+            {darkMode ? '☀️' : '🌙'}
+          </button>
+        </div>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-sage-700">🐾 Pupular</h1>
           {location && (
@@ -314,6 +356,9 @@ export default function Home() {
       {/* Demo mode banner */}
       <DemoBanner source={dataSource} />
 
+      {/* Daily streak (#10) */}
+      <DailyStreak streak={streak} />
+
       {/* Pet of the Day */}
       <PetOfTheDay onSelect={(pet) => setDetailPet(pet)} />
 
@@ -322,6 +367,9 @@ export default function Home() {
 
       {/* Trending pets */}
       <TrendingBar onSelect={(pet) => setDetailPet(pet)} />
+
+      {/* Success stories (#8) */}
+      <SuccessStories />
 
       {/* Card stack */}
       <main className="flex flex-1 items-center justify-center px-4 py-4">
@@ -341,25 +389,34 @@ export default function Home() {
                   ? `You've saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'}. Check your favorites!`
                   : 'No more pets to show. Try changing your filters or check back later!'}
               </p>
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={resetAll}
-                  className="flex items-center gap-2 rounded-2xl bg-sage-100 px-6 py-3 font-semibold text-sage-700 hover:bg-sage-200"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Start Over
-                </button>
-                {favorites.length > 0 && (
+              <div className="mt-6 flex flex-col gap-3">
+                <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setView('favorites')}
-                    className="flex items-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
+                    onClick={resetAll}
+                    className="flex items-center gap-2 rounded-2xl bg-sage-100 px-6 py-3 font-semibold text-sage-700 hover:bg-sage-200"
                   >
-                    <Heart className="h-4 w-4" />
-                    Favorites
+                    <RefreshCw className="h-4 w-4" />
+                    Start Over
                   </button>
-                )}
+                  {favorites.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setView('favorites')}
+                      className="flex items-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
+                    >
+                      <Heart className="h-4 w-4" />
+                      Favorites
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setView('quiz')}
+                  className="flex items-center justify-center gap-2 rounded-2xl border-2 border-sage-200 px-6 py-3 font-semibold text-sage-600 hover:bg-sage-50"
+                >
+                  🧠 Retake Quiz
+                </button>
               </div>
             </div>
           ) : (
@@ -425,6 +482,12 @@ export default function Home() {
 
       {/* Match toast */}
       <MatchToast pet={lastSaved} onDismiss={() => setLastSaved(null)} />
+
+      {/* Confetti on match (#3) */}
+      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+
+      {/* Pet compare modal (#7) */}
+      {comparePets && <PetCompare pets={comparePets} onClose={() => setComparePets(null)} />}
 
       {/* Keyboard shortcuts (desktop only) */}
       <KeyboardHints

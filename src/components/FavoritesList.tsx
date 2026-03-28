@@ -1,6 +1,8 @@
 'use client';
 
-import { Heart, X, MapPin, Phone, ArrowLeft, ExternalLink, Navigation } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows } from 'lucide-react';
+import { hapticLight } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 
@@ -9,9 +11,40 @@ interface Props {
   onRemove: (id: string) => void;
   onBack: () => void;
   onSelect: (pet: Pet) => void;
+  onCompare?: (pets: [Pet, Pet]) => void;
 }
 
-export default function FavoritesList({ favorites, onRemove, onBack, onSelect }: Props) {
+export default function FavoritesList({ favorites, onRemove, onBack, onSelect, onCompare }: Props) {
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<string[]>([]);
+
+  const toggleCompareSelect = (id: string) => {
+    hapticLight();
+    setCompareSelection(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 2 ? [...prev, id] : prev
+    );
+  };
+
+  const handleCompare = () => {
+    if (compareSelection.length === 2 && onCompare) {
+      const pets = compareSelection.map(id => favorites.find(p => p.id === id)!);
+      onCompare(pets as [Pet, Pet]);
+      setCompareMode(false);
+      setCompareSelection([]);
+    }
+  };
+
+  const handleShareAll = async () => {
+    hapticLight();
+    const text = `🐾 Check out my ${favorites.length} favorite pets on Pupular!\n\n` +
+      favorites.map(p => `• ${p.name} — ${p.breed} (${p.age})`).join('\n') +
+      '\n\nFind your match: https://www.pupular.app';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: 'My Pupular Favorites', text }); } catch { /* cancelled */ }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
+  };
   return (
     <div className="min-h-screen bg-sage-50 px-4 pb-24 pt-6">
       <div className="mx-auto max-w-lg">
@@ -28,7 +61,23 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect }:
             <h1 className="text-2xl font-bold text-gray-900">Your Favorites</h1>
             <p className="text-sm text-gray-500">{favorites.length} {favorites.length === 1 ? 'pet' : 'pets'} saved</p>
           </div>
-          <Heart className="ml-auto h-6 w-6 fill-red-500 text-red-500" />
+          <div className="ml-auto flex items-center gap-2">
+            {favorites.length >= 2 && (
+              <button
+                type="button"
+                onClick={() => { setCompareMode(!compareMode); setCompareSelection([]); }}
+                className={`flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium transition ${compareMode ? 'bg-sage-500 text-white' : 'bg-sage-100 text-sage-600'}`}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5" />
+                Compare
+              </button>
+            )}
+            {favorites.length > 0 && (
+              <button type="button" onClick={handleShareAll} className="rounded-full bg-purple-50 p-2 text-purple-500 hover:bg-purple-100">
+                <Share2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {favorites.length === 0 ? (
@@ -49,9 +98,9 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect }:
             {favorites.map((pet) => (
               <div
                 key={pet.id}
-                className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md"
+                className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md ${compareMode && compareSelection.includes(pet.id) ? 'ring-2 ring-sage-500' : ''}`}
               >
-                <div className="flex cursor-pointer" onClick={() => onSelect(pet)}>
+                <div className="flex cursor-pointer" onClick={() => compareMode ? toggleCompareSelect(pet.id) : onSelect(pet)}>
                   <div className="relative h-36 w-36 shrink-0">
                     <Image
                       src={pet.photo}
@@ -116,8 +165,23 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect }:
               </div>
             ))}
 
+            {/* Compare CTA */}
+            {compareMode && compareSelection.length === 2 && (
+              <button
+                type="button"
+                onClick={handleCompare}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-sage-500 py-4 font-semibold text-white shadow-md transition hover:bg-sage-600"
+              >
+                <GitCompareArrows className="h-5 w-5" />
+                Compare These Two
+              </button>
+            )}
+            {compareMode && compareSelection.length < 2 && (
+              <p className="text-center text-sm text-sage-500">Select {2 - compareSelection.length} more {compareSelection.length === 0 ? 'pets' : 'pet'} to compare</p>
+            )}
+
             {/* CTAs */}
-            {favorites.length >= 1 && (
+            {favorites.length >= 1 && !compareMode && (
               <div className="mt-6 space-y-3">
                 <a
                   href="/checklist"
