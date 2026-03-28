@@ -5,6 +5,8 @@ import { X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows } fro
 import { hapticLight } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
+import ShelterMap from './ShelterMap';
+import YourType from './YourType';
 
 interface Props {
   favorites: Pet[];
@@ -17,6 +19,7 @@ interface Props {
 export default function FavoritesList({ favorites, onRemove, onBack, onSelect, onCompare }: Props) {
   const [compareMode, setCompareMode] = useState(false);
   const [compareSelection, setCompareSelection] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'pets' | 'shelters'>('pets');
 
   const toggleCompareSelect = (id: string) => {
     hapticLight();
@@ -95,6 +98,26 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
           </div>
         </div>
 
+        {/* Tab switcher */}
+        {favorites.length > 0 && (
+          <div className="mb-4 flex rounded-xl bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => { setActiveTab('pets'); hapticLight(); }}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${activeTab === 'pets' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+            >
+              ❤️ Saved Pets
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('shelters'); hapticLight(); }}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${activeTab === 'shelters' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+            >
+              🗺️ Shelters
+            </button>
+          </div>
+        )}
+
         {favorites.length === 0 ? (
           <div className="mt-20 flex flex-col items-center text-center">
             <div className="animate-bounce text-7xl">🐾</div>
@@ -112,6 +135,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
               </button>
               <p className="text-xs text-gray-400">Tip: Swipe right or press the ❤️ button to save pets</p>
             </div>
+          </div>
+        ) : activeTab === 'shelters' ? (
+          <div>
+            <ShelterMap favorites={favorites} />
+            <YourType favorites={favorites} />
           </div>
         ) : (
           <div className="space-y-4">

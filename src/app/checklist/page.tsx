@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Check, Circle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Sparkles, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface CheckItem {
@@ -66,6 +66,15 @@ export default function ChecklistPage() {
   const totalItems = checklistItems.length;
   const progress = Math.round((totalChecked / totalItems) * 100);
 
+  const handleShare = async () => {
+    const text = `I'm ${progress}% ready to adopt a pet! 🐾\n\nUsing the adoption checklist on Pupular to prepare for my new furry family member.\n\nhttps://www.pupular.app/checklist`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: "I'm ready to adopt!", text, url: 'https://www.pupular.app/checklist' }); } catch { /* cancelled */ }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-sage-50 px-4 pb-24 pt-6">
       <div className="mx-auto max-w-lg">
@@ -101,6 +110,14 @@ export default function ChecklistPage() {
               You&apos;re ready to bring your new friend home! 🎉
             </div>
           )}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-sage-500 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-600"
+          >
+            <Share2 className="h-4 w-4" />
+            I&apos;m {progress}% ready to adopt!
+          </button>
         </div>
 
         {/* Checklist */}

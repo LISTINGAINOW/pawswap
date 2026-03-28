@@ -29,6 +29,9 @@ const DailyStreak = dynamic(() => import('@/components/DailyStreak'), { ssr: fal
 const PetCompare = dynamic(() => import('@/components/PetCompare'), { ssr: false });
 const SwipeStats = dynamic(() => import('@/components/SwipeStats'), { ssr: false });
 const QuickReactions = dynamic(() => import('@/components/QuickReactions'), { ssr: false });
+const NotificationPrompt = dynamic(() => import('@/components/NotificationPrompt'), { ssr: false });
+const BackToTop = dynamic(() => import('@/components/BackToTop'), { ssr: false });
+const WelcomeBack = dynamic(() => import('@/components/WelcomeBack'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -140,6 +143,11 @@ export default function Home() {
       }
     } catch { /* ignore */ }
   }, []);
+
+  // Scroll to top on view change
+  useEffect(() => {
+    if (mounted) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [view, mounted]);
 
   // Persist favorites
   useEffect(() => {
@@ -448,6 +456,9 @@ export default function Home() {
       {/* Demo mode banner */}
       <DemoBanner source={dataSource} />
 
+      {/* Welcome back message */}
+      <WelcomeBack favoriteCount={favorites.length} />
+
       {/* Daily streak (#10) */}
       <DailyStreak streak={streak} />
 
@@ -630,6 +641,12 @@ export default function Home() {
 
       {/* Trophy case modal */}
       {showTrophyCase && <TrophyCase unlockedIds={unlockedIds} onClose={() => setShowTrophyCase(false)} />}
+
+      {/* Notification prompt after 3rd save */}
+      <NotificationPrompt favoriteCount={favorites.length} />
+
+      {/* Floating back to top */}
+      <BackToTop />
 
       {/* Keyboard shortcuts (desktop only) */}
       <KeyboardHints
