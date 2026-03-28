@@ -8,6 +8,7 @@ import FavoritesList from '@/components/FavoritesList';
 import FilterPanel from '@/components/FilterPanel';
 import LocationPrompt from '@/components/LocationPrompt';
 import OnboardingSlides from '@/components/OnboardingSlides';
+import KeyboardHints from '@/components/KeyboardHints';
 import { mockPets, Pet } from '@/data/pets';
 
 type View = 'onboarding' | 'location' | 'swipe' | 'favorites' | 'filters';
@@ -265,6 +266,15 @@ export default function Home() {
           isFavorited={favorites.some((f) => f.id === detailPet.id)}
         />
       )}
+
+      {/* Keyboard shortcuts (desktop only) */}
+      <KeyboardHints
+        onLeft={handleSwipeLeft}
+        onRight={handleSwipeRight}
+        onInfo={() => filteredPets[0] && setDetailPet(filteredPets[0])}
+        onUndo={handleUndo}
+        enabled={view === 'swipe' && filteredPets.length > 0 && !detailPet}
+      />
     </div>
   );
 }
