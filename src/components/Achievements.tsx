@@ -24,29 +24,30 @@ export interface UserStats {
 }
 
 const ACHIEVEMENTS: Achievement[] = [
-  // Swipe milestones (first badge at 20, then escalating)
-  { id: 'getting-started', emoji: '👆', title: 'Getting Started', description: 'Swiped 20 pets', condition: (s) => s.totalSwiped >= 20 },
-  { id: 'cant-stop', emoji: '🔥', title: "Can't Stop", description: 'Swiped 50 pets', condition: (s) => s.totalSwiped >= 50 },
-  { id: 'super-swiper', emoji: '⚡', title: 'Super Swiper', description: 'Swiped 100 pets', condition: (s) => s.totalSwiped >= 100 },
-  { id: 'swipe-machine', emoji: '🤖', title: 'Swipe Machine', description: 'Swiped 200 pets', condition: (s) => s.totalSwiped >= 200 },
-  { id: 'pet-whisperer', emoji: '🐾', title: 'Pet Whisperer', description: 'Swiped 500 pets', condition: (s) => s.totalSwiped >= 500 },
+  // Swipe milestones — grindy, rewarding
+  { id: 'getting-started', emoji: '👆', title: 'Getting Started', description: 'Swiped 50 pets', condition: (s) => s.totalSwiped >= 50 },
+  { id: 'cant-stop', emoji: '🔥', title: "Can't Stop", description: 'Swiped 150 pets', condition: (s) => s.totalSwiped >= 150 },
+  { id: 'super-swiper', emoji: '⚡', title: 'Super Swiper', description: 'Swiped 300 pets', condition: (s) => s.totalSwiped >= 300 },
+  { id: 'swipe-machine', emoji: '🤖', title: 'Swipe Machine', description: 'Swiped 500 pets', condition: (s) => s.totalSwiped >= 500 },
+  { id: 'pet-whisperer', emoji: '🐾', title: 'Pet Whisperer', description: 'Swiped 750 pets', condition: (s) => s.totalSwiped >= 750 },
+  { id: 'save-all', emoji: '😻', title: 'Save Them All', description: 'Swiped 1,000 pets', condition: (s) => s.totalSwiped >= 1000 },
 
-  // Favorite milestones (spaced out more)
-  { id: 'pet-lover', emoji: '❤️', title: 'Pet Lover', description: 'Saved 10 favorites', condition: (s) => s.totalFavorited >= 10 },
-  { id: 'collector', emoji: '🏆', title: 'Collector', description: 'Saved 25 favorites', condition: (s) => s.totalFavorited >= 25 },
-  { id: 'save-all', emoji: '😻', title: 'Save Them All', description: 'Saved 50 favorites', condition: (s) => s.totalFavorited >= 50 },
+  // Favorite milestones
+  { id: 'pet-lover', emoji: '❤️', title: 'Pet Lover', description: 'Saved 25 favorites', condition: (s) => s.totalFavorited >= 25 },
+  { id: 'collector', emoji: '🏆', title: 'Collector', description: 'Saved 75 favorites', condition: (s) => s.totalFavorited >= 75 },
+  { id: 'hoarder', emoji: '🏠', title: 'Pet Hoarder', description: 'Saved 200 favorites', condition: (s) => s.totalFavorited >= 200 },
 
-  // Type-specific (need to actually commit to a type)
-  { id: 'dog-person', emoji: '🐕', title: 'Dog Person', description: 'Loved 10 dogs', condition: (s) => s.dogsLoved >= 10 },
-  { id: 'cat-person', emoji: '🐈', title: 'Cat Person', description: 'Loved 10 cats', condition: (s) => s.catsLoved >= 10 },
-  { id: 'animal-lover', emoji: '🌟', title: 'Animal Lover', description: 'Loved 5+ dogs AND 5+ cats', condition: (s) => s.dogsLoved >= 5 && s.catsLoved >= 5 },
+  // Type-specific
+  { id: 'dog-person', emoji: '🐕', title: 'Dog Person', description: 'Loved 25 dogs', condition: (s) => s.dogsLoved >= 25 },
+  { id: 'cat-person', emoji: '🐈', title: 'Cat Person', description: 'Loved 25 cats', condition: (s) => s.catsLoved >= 25 },
+  { id: 'animal-lover', emoji: '🌟', title: 'Animal Lover', description: 'Loved 15+ dogs AND 15+ cats', condition: (s) => s.dogsLoved >= 15 && s.catsLoved >= 15 },
 
-  // Engagement (require real effort)
+  // Engagement
   { id: 'quiz-master', emoji: '🧠', title: 'Quiz Master', description: 'Completed the personality quiz', condition: (s) => s.quizCompleted },
-  { id: 'social-butterfly', emoji: '🦋', title: 'Social Butterfly', description: 'Shared 3 pets with friends', condition: (s) => s.shareCount >= 3 },
-  { id: 'influencer', emoji: '📣', title: 'Influencer', description: 'Shared 10 pets', condition: (s) => s.shareCount >= 10 },
+  { id: 'social-butterfly', emoji: '🦋', title: 'Social Butterfly', description: 'Shared 5 pets with friends', condition: (s) => s.shareCount >= 5 },
+  { id: 'influencer', emoji: '📣', title: 'Influencer', description: 'Shared 25 pets', condition: (s) => s.shareCount >= 25 },
 
-  // Streak milestones (escalating)
+  // Streak milestones
   { id: 'streak-3', emoji: '🔥', title: 'On Fire', description: '3-day streak', condition: (s) => s.streakDays >= 3 },
   { id: 'streak-7', emoji: '💎', title: 'Diamond Streak', description: '7-day streak', condition: (s) => s.streakDays >= 7 },
   { id: 'streak-14', emoji: '👑', title: 'Royalty', description: '14-day streak', condition: (s) => s.streakDays >= 14 },
