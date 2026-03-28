@@ -80,10 +80,13 @@ function mapRescueGroupsPet(animal: RescueGroupsAnimal): Pet {
     photos: photos.length > 0 ? photos : ['/placeholder-pet.png'],
     shelter: animal.animalOrgName || 'Local Shelter',
     shelterPhone: animal.animalOrgPhone || '',
+    shelterEmail: '',
     shelterAddress: [animal.animalOrgAddress, animal.animalOrgCity, animal.animalOrgState, animal.animalOrgPostalcode].filter(Boolean).join(', '),
+    shelterHours: '',
     description: animal.animalDescription?.replace(/<[^>]*>/g, '') || `${animal.animalName} is looking for a forever home!`,
     traits,
     goodWith,
+    adoptionFee: '',
     adoptionUrl: animal.animalAdoptionUrl || '#',
   };
 }
@@ -244,10 +247,13 @@ export async function searchPetfinder(params: SearchParams): Promise<Pet[]> {
         photos: photos.length > 0 ? photos : ['/placeholder-pet.png'],
         shelter: (a.organization_id as string) || 'Local Shelter',
         shelterPhone: (contact?.phone as string) || '',
+        shelterEmail: (contact?.email as string) || '',
         shelterAddress: address ? [address.address1, address.city, address.state, address.postcode].filter(Boolean).join(', ') : '',
+        shelterHours: '',
         description: ((a.description as string) || `Meet ${a.name}!`).replace(/<[^>]*>/g, ''),
         traits,
         goodWith,
+        adoptionFee: '',
         adoptionUrl: (a.url as string) || '#',
       };
     });
