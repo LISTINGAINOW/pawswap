@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows } from 'lucide-react';
+import { X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows } from 'lucide-react';
 import { hapticLight } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
@@ -36,13 +36,28 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
 
   const handleShareAll = async () => {
     hapticLight();
-    const text = `🐾 Check out my ${favorites.length} favorite pets on Pupular!\n\n` +
-      favorites.map(p => `• ${p.name} — ${p.breed} (${p.age})`).join('\n') +
-      '\n\nFind your match: https://www.pupular.app';
+    const petList = favorites
+      .map(p => `• ${p.name} ${p.type === 'dog' ? '🐕' : '🐈'} — ${p.age} ${p.breed} @ ${p.shelter}`)
+      .join('\n');
+    const text = `🐾 I found ${favorites.length} amazing pets on Pupular looking for homes!\n\n${petList}\n\nFind your match: https://www.pupular.app`;
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try { await navigator.share({ title: 'My Pupular Favorites', text }); } catch { /* cancelled */ }
+      try { await navigator.share({ title: 'My Pupular Favorites', text, url: 'https://www.pupular.app' }); } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       await navigator.clipboard.writeText(text);
+    }
+  };
+
+  const handleSharePet = async (pet: import('@/data/pets').Pet) => {
+    hapticLight();
+    const typeEmoji = pet.type === 'dog' ? '🐕' : '🐈';
+    const text = `Meet ${pet.name} ${typeEmoji} — ${pet.age} ${pet.breed} looking for a forever home! Check them out on Pupular 🐾`;
+    const url = pet.adoptionUrl || 'https://www.pupular.app';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: `Meet ${pet.name} on Pupular`, text, url });
+      } catch { /* cancelled */ }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
     }
   };
   return (
@@ -135,10 +150,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <a
                         href={`tel:${pet.shelterPhone}`}
                         onClick={(e) => e.stopPropagation()}
+                        aria-label={`Call ${pet.shelter}`}
                         className="flex items-center gap-1 rounded-full bg-sage-50 px-3 py-1 text-xs font-medium text-sage-600 transition hover:bg-sage-100"
                       >
                         <Phone className="h-3 w-3" />
@@ -149,11 +165,21 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
+                        aria-label={`Directions to ${pet.shelter}`}
                         className="flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-600 transition hover:bg-sky-100"
                       >
                         <Navigation className="h-3 w-3" />
                         Directions
                       </a>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleSharePet(pet); }}
+                        aria-label={`Share ${pet.name}`}
+                        className="flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-500 transition hover:bg-purple-100"
+                      >
+                        <Share2 className="h-3 w-3" />
+                        Share
+                      </button>
                     </div>
                   </div>
                   <button
