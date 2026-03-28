@@ -13,6 +13,7 @@ import MatchToast from '@/components/MatchToast';
 import PetQuiz from '@/components/PetQuiz';
 import TrendingBar from '@/components/TrendingBar';
 import AdoptionTips from '@/components/AdoptionTips';
+import PetOfTheDay from '@/components/PetOfTheDay';
 import QuizResults from '@/components/QuizResults';
 import { mockPets, Pet } from '@/data/pets';
 
@@ -240,6 +241,9 @@ export default function Home() {
           )}
         </button>
       </header>
+
+      {/* Pet of the Day */}
+      <PetOfTheDay onSelect={(pet) => setDetailPet(pet)} />
 
       {/* Adoption tip */}
       <AdoptionTips />

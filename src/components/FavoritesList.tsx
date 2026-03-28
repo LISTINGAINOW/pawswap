@@ -116,12 +116,20 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect }:
               </div>
             ))}
 
-            {/* Contact all shelters CTA */}
-            {favorites.length >= 2 && (
-              <div className="mt-6 rounded-2xl bg-sage-100 p-5 text-center">
-                <p className="text-sm font-medium text-sage-700">
-                  💡 Ready to meet them? Call the shelters to schedule visits!
-                </p>
+            {/* CTAs */}
+            {favorites.length >= 1 && (
+              <div className="mt-6 space-y-3">
+                <a
+                  href="/checklist"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-sage-500 px-6 py-4 font-semibold text-white transition hover:bg-sage-600"
+                >
+                  ✅ Adoption Checklist
+                </a>
+                <div className="rounded-2xl bg-sage-100 p-5 text-center">
+                  <p className="text-sm font-medium text-sage-700">
+                    💡 Ready to meet them? Call the shelters to schedule visits!
+                  </p>
+                </div>
               </div>
             )}
           </div>

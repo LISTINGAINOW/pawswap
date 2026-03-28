@@ -60,11 +60,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       description: `${meta.description} Take the quiz and find your perfect pet!`,
       siteName: 'PawSwap',
       type: 'website',
+      images: [`/api/og?type=${type}`],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${meta.emoji} I'm a ${meta.title}!`,
       description: `${meta.description} What pet matches YOUR vibe? Take the quiz!`,
+      images: [`/api/og?type=${type}`],
     },
   };
 }
