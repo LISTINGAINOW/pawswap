@@ -152,6 +152,17 @@ export default function Home() {
     if (mounted) localStorage.setItem('pupular-share-count', String(shareCount));
   }, [shareCount, mounted]);
 
+  // Preload first 2 pet images for smoother transitions
+  useEffect(() => {
+    filteredPets.slice(0, 2).forEach((pet) => {
+      const src = pet.photos[0] || pet.photo;
+      if (src) {
+        const img = new window.Image();
+        img.src = src;
+      }
+    });
+  }, [filteredPets]);
+
   // Fetch pets from API when location changes
   const fetchPets = useCallback(async (loc: UserLocation) => {
     setLoading(true);
