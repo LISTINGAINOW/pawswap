@@ -92,7 +92,7 @@ function mapRescueGroupsPet(animal: RescueGroupsAnimal): Pet {
 }
 
 export async function searchRescueGroups(params: SearchParams): Promise<Pet[]> {
-  const apiKey = process.env.NEXT_PUBLIC_RESCUEGROUPS_API_KEY || process.env.RESCUEGROUPS_API_KEY;
+  const apiKey = process.env.RESCUEGROUPS_API_KEY;
   if (!apiKey) {
     console.warn('RescueGroups API key not set');
     return [];
@@ -152,7 +152,7 @@ export async function searchRescueGroups(params: SearchParams): Promise<Pet[]> {
     }
     return [];
   } catch (error) {
-    console.error('RescueGroups API error:', error);
+    console.error('RescueGroups API error:', (error as Error).message);
     return [];
   }
 }
@@ -161,6 +161,7 @@ export async function searchRescueGroups(params: SearchParams): Promise<Pet[]> {
 
 let petfinderToken: string | null = null;
 let petfinderTokenExpiry = 0;
+let petfinderTokenRefresh: Promise<string | null> | null = null;
 
 async function getPetfinderToken(): Promise<string | null> {
   const clientId = process.env.PETFINDER_CLIENT_ID;
@@ -171,7 +172,13 @@ async function getPetfinderToken(): Promise<string | null> {
     return petfinderToken;
   }
 
-  try {
+  // If a refresh is already in progress, await it instead of starting a new one
+  if (petfinderTokenRefresh) {
+    return petfinderTokenRefresh;
+  }
+
+  petfinderTokenRefresh = (async () => {
+    try {
     const response = await fetch('https://api.petfinder.com/v2/oauth2/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -186,10 +193,15 @@ async function getPetfinderToken(): Promise<string | null> {
     petfinderToken = data.access_token;
     petfinderTokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
     return petfinderToken;
-  } catch (error) {
-    console.error('Petfinder auth error:', error);
-    return null;
-  }
+    } catch (error) {
+      console.error('Petfinder auth error:', (error as Error).message);
+      return null;
+    } finally {
+      petfinderTokenRefresh = null;
+    }
+  })();
+
+  return petfinderTokenRefresh;
 }
 
 export async function searchPetfinder(params: SearchParams): Promise<Pet[]> {
@@ -258,7 +270,7 @@ export async function searchPetfinder(params: SearchParams): Promise<Pet[]> {
       };
     });
   } catch (error) {
-    console.error('Petfinder API error:', error);
+    console.error('Petfinder API error:', (error as Error).message);
     return [];
   }
 }
