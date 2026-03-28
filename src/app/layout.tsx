@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Nunito } from 'next/font/google';
 import './globals.css';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+import OfflineBanner from '@/components/OfflineBanner';
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -43,7 +45,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={nunito.variable}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-sage-500 focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
+        >
+          Skip to content
+        </a>
+        <ServiceWorkerRegistration />
+        <OfflineBanner />
+        {children}
+      </body>
     </html>
   );
 }
