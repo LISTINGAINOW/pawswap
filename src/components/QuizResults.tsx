@@ -1,17 +1,32 @@
 'use client';
 
-import { Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
+import { Sparkles, ArrowRight, RotateCcw, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 
 interface Props {
   matches: Pet[];
+  resultType?: string;
   onStartSwiping: () => void;
   onRetakeQuiz: () => void;
   onSelectPet: (pet: Pet) => void;
 }
 
-export default function QuizResults({ matches, onStartSwiping, onRetakeQuiz, onSelectPet }: Props) {
+export default function QuizResults({ matches, resultType, onStartSwiping, onRetakeQuiz, onSelectPet }: Props) {
+  const handleShareResult = async () => {
+    const url = `${window.location.origin}/quiz/result?type=${resultType || 'cuddly-dog'}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '🐾 My PawSwap Result!',
+          text: 'I just found my perfect pet match! What\'s yours?',
+          url,
+        });
+      } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url);
+    }
+  };
   return (
     <div className="flex min-h-screen flex-col bg-sage-50 px-6 py-8">
       <div className="mx-auto w-full max-w-md">
@@ -66,14 +81,24 @@ export default function QuizResults({ matches, onStartSwiping, onRetakeQuiz, onS
           >
             Start Swiping 🐾
           </button>
-          <button
-            type="button"
-            onClick={onRetakeQuiz}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3 text-sm font-medium text-gray-500 transition hover:bg-gray-50"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Retake Quiz
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleShareResult}
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3 text-sm font-medium text-sage-600 shadow-sm ring-1 ring-black/5 transition hover:bg-sage-50"
+            >
+              <Share2 className="h-4 w-4" />
+              Share Result
+            </button>
+            <button
+              type="button"
+              onClick={onRetakeQuiz}
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3 text-sm font-medium text-gray-500 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Retake
+            </button>
+          </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-gray-400">
