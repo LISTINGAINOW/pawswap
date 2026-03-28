@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             fontWeight: 700,
           }}
         >
-          🐾 Take the quiz at PawSwap
+          🐾 Take the quiz at Pawnder
         </div>
 
         {/* Watermark */}
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
             color: '#999',
           }}
         >
-          pawswap.com
+          pawnder.app
         </div>
       </div>
     ),

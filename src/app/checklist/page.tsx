@@ -48,7 +48,7 @@ export default function ChecklistPage() {
 
   // Persist to localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('pawswap-checklist');
+    const saved = localStorage.getItem('pawnder-checklist');
     if (saved) setChecked(new Set(JSON.parse(saved)));
   }, []);
 
@@ -57,7 +57,7 @@ export default function ChecklistPage() {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      localStorage.setItem('pawswap-checklist', JSON.stringify([...next]));
+      localStorage.setItem('pawnder-checklist', JSON.stringify([...next]));
       return next;
     });
   };

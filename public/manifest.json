@@ -1,6 +1,6 @@
 {
-  "name": "PawSwap",
-  "short_name": "PawSwap",
+  "name": "Pawnder",
+  "short_name": "Pawnder",
   "description": "Swipe to find your perfect pet",
   "start_url": "/",
   "display": "standalone",

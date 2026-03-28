@@ -31,7 +31,7 @@ interface UserLocation {
 
 export default function Home() {
   const [view, setView] = useState<View>(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('pawswap-onboarded')) {
+    if (typeof window !== 'undefined' && localStorage.getItem('pawnder-onboarded')) {
       return 'location';
     }
     return 'onboarding';
@@ -120,7 +120,7 @@ export default function Home() {
       <OnboardingSlides
         onComplete={() => {
           if (typeof window !== 'undefined') {
-            localStorage.setItem('pawswap-onboarded', 'true');
+            localStorage.setItem('pawnder-onboarded', 'true');
           }
           setView('location');
         }}
@@ -216,7 +216,7 @@ export default function Home() {
           <SlidersHorizontal className="h-5 w-5 text-gray-600" />
         </button>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-sage-700">🐾 PawSwap</h1>
+          <h1 className="text-2xl font-bold text-sage-700">🐾 Pawnder</h1>
           {location && (
             <button
               type="button"

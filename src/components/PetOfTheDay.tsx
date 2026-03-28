@@ -23,7 +23,7 @@ export default function PetOfTheDay({ onSelect }: Props) {
     setPet(mockPets[index]);
 
     // Check if already dismissed today
-    const lastDismissed = localStorage.getItem('pawswap-potd-dismissed');
+    const lastDismissed = localStorage.getItem('pawnder-potd-dismissed');
     if (lastDismissed === today.toDateString()) {
       setDismissed(true);
     }
@@ -31,7 +31,7 @@ export default function PetOfTheDay({ onSelect }: Props) {
 
   const handleDismiss = () => {
     setDismissed(true);
-    localStorage.setItem('pawswap-potd-dismissed', new Date().toDateString());
+    localStorage.setItem('pawnder-potd-dismissed', new Date().toDateString());
   };
 
   if (!pet || dismissed) return null;
