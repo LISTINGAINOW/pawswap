@@ -9,6 +9,7 @@ import FilterPanel from '@/components/FilterPanel';
 import LocationPrompt from '@/components/LocationPrompt';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import KeyboardHints from '@/components/KeyboardHints';
+import MatchToast from '@/components/MatchToast';
 import { mockPets, Pet } from '@/data/pets';
 
 type View = 'onboarding' | 'location' | 'swipe' | 'favorites' | 'filters';
@@ -33,6 +34,7 @@ export default function Home() {
   const [passed, setPassed] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [detailPet, setDetailPet] = useState<Pet | null>(null);
+  const [lastSaved, setLastSaved] = useState<Pet | null>(null);
   const [animalFilter, setAnimalFilter] = useState<AnimalFilter>('all');
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all');
 
@@ -48,6 +50,7 @@ export default function Home() {
     const pet = filteredPets[0];
     if (pet) {
       setFavorites((prev) => [...prev, pet]);
+      setLastSaved(pet);
       setCurrentIndex((i) => i + 1);
     }
   }, [filteredPets]);
@@ -266,6 +269,9 @@ export default function Home() {
           isFavorited={favorites.some((f) => f.id === detailPet.id)}
         />
       )}
+
+      {/* Match toast */}
+      <MatchToast pet={lastSaved} onDismiss={() => setLastSaved(null)} />
 
       {/* Keyboard shortcuts (desktop only) */}
       <KeyboardHints
