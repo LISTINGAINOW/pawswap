@@ -70,6 +70,7 @@ export default function Home() {
   const [totalSwiped, setTotalSwiped] = useState(0);
   const [shareCount, setShareCount] = useState(0);
   const [quizDone, setQuizDone] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
   const { streak, recordView } = useStreak();
 
   // Achievement tracking
@@ -208,6 +209,7 @@ export default function Home() {
       setShowConfetti(true);
       setTotalSwiped(n => n + 1);
       recordView();
+      setAnnouncement(`Saved ${pet.name} to favorites`);
     }
   }, [filteredPets, recordView]);
 
@@ -217,6 +219,7 @@ export default function Home() {
       setPassed((prev) => [...prev, pet.id]);
       setTotalSwiped(n => n + 1);
       recordView();
+      setAnnouncement(`Passed on ${pet.name}`);
     }
   }, [filteredPets, recordView]);
 
@@ -347,6 +350,11 @@ export default function Home() {
 
   return (
     <div className={`flex min-h-screen flex-col ${darkMode ? 'bg-gray-900' : 'bg-sage-50'}`}>
+      {/* Screen reader live announcements */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </div>
+
       {/* Header */}
       <header className={`flex items-center justify-between px-5 pb-2 pt-4 ${darkMode ? 'bg-gray-900' : ''}`}>
         <div className="flex items-center gap-2">
@@ -418,7 +426,7 @@ export default function Home() {
       <SuccessStories />
 
       {/* Card stack */}
-      <main className="flex flex-1 items-center justify-center px-4 py-4">
+      <main id="main-content" className="flex flex-1 items-center justify-center px-4 py-4">
         <div className="relative h-[560px] w-full max-w-[380px]">
           {loading ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
