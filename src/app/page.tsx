@@ -18,13 +18,13 @@ const FilterPanel = dynamic(() => import('@/components/FilterPanel'), { ssr: fal
 const KeyboardHints = dynamic(() => import('@/components/KeyboardHints'), { ssr: false });
 const MatchToast = dynamic(() => import('@/components/MatchToast'), { ssr: false });
 const PetQuiz = dynamic(() => import('@/components/PetQuiz'), { ssr: false });
-const TrendingBar = dynamic(() => import('@/components/TrendingBar'), { ssr: false });
+// TrendingBar removed from main swipe view (clutters card UX on small screens)
 const AdoptionTips = dynamic(() => import('@/components/AdoptionTips'), { ssr: false });
 const PetOfTheDay = dynamic(() => import('@/components/PetOfTheDay'), { ssr: false });
 const QuizResults = dynamic(() => import('@/components/QuizResults'), { ssr: false });
 const DemoBanner = dynamic(() => import('@/components/DemoBanner'), { ssr: false });
 const Confetti = dynamic(() => import('@/components/Confetti'), { ssr: false });
-const SuccessStories = dynamic(() => import('@/components/SuccessStories'), { ssr: false });
+// SuccessStories removed from main swipe view (clutters card UX on small screens)
 const DailyStreak = dynamic(() => import('@/components/DailyStreak'), { ssr: false });
 const PetCompare = dynamic(() => import('@/components/PetCompare'), { ssr: false });
 const SwipeStats = dynamic(() => import('@/components/SwipeStats'), { ssr: false });
@@ -468,15 +468,9 @@ export default function Home() {
       {/* Adoption tip */}
       <AdoptionTips />
 
-      {/* Trending pets */}
-      <TrendingBar onSelect={(pet) => setDetailPet(pet)} />
-
-      {/* Success stories (#8) */}
-      <SuccessStories />
-
       {/* Card stack */}
-      <main id="main-content" className="flex flex-1 items-center justify-center px-4 py-4">
-        <div className="relative h-[560px] w-full max-w-[380px]">
+      <main id="main-content" className="flex flex-1 min-h-0 items-center justify-center px-4 py-2">
+        <div className="relative w-full max-w-[380px]" style={{ height: 'clamp(300px, calc(100svh - 370px), 560px)' }}>
           {loading ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               <Loader2 className="h-12 w-12 animate-spin text-sage-400" />

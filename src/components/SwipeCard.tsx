@@ -97,9 +97,9 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
       aria-label={isTop ? `${pet.name}, ${pet.breed}, ${pet.age}, ${pet.gender}` : undefined}
       aria-roledescription={isTop ? 'swipe card' : undefined}
     >
-      <div className="relative h-full w-full overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-black/5">
+      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-black/5">
         {/* Photo */}
-        <div className="relative h-[68%] w-full">
+        <div className="relative min-h-0 flex-1 w-full">
           <Image
             src={pet.photos[photoIndex] || pet.photo}
             alt={`${pet.name} — ${pet.breed}`}
@@ -188,8 +188,8 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
           </div>
         </div>
 
-        {/* Info section */}
-        <div className="flex h-[32%] flex-col justify-between p-5">
+        {/* Info section — fixed height so buttons always fit regardless of card height */}
+        <div className="flex h-[165px] flex-none flex-col justify-between p-4">
           <div>
             <div className="flex flex-wrap gap-1.5" role="list" aria-label="Traits">
               {pet.traits.slice(0, 4).map((trait) => (
