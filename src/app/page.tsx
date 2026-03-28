@@ -11,6 +11,7 @@ import OnboardingSlides from '@/components/OnboardingSlides';
 import KeyboardHints from '@/components/KeyboardHints';
 import MatchToast from '@/components/MatchToast';
 import PetQuiz from '@/components/PetQuiz';
+import TrendingBar from '@/components/TrendingBar';
 import QuizResults from '@/components/QuizResults';
 import { mockPets, Pet } from '@/data/pets';
 
@@ -238,6 +239,9 @@ export default function Home() {
           )}
         </button>
       </header>
+
+      {/* Trending pets */}
+      <TrendingBar onSelect={(pet) => setDetailPet(pet)} />
 
       {/* Card stack */}
       <main className="flex flex-1 items-center justify-center px-4 py-4">
