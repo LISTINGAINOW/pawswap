@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Heart, RotateCcw, SlidersHorizontal, MapPin } from 'lucide-react';
 import SwipeCard from '@/components/SwipeCard';
 import PetDetail from '@/components/PetDetail';
@@ -30,12 +30,14 @@ interface UserLocation {
 }
 
 export default function Home() {
-  const [view, setView] = useState<View>(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('pupular-onboarded')) {
-      return 'location';
+  const [view, setView] = useState<View>('onboarding');
+
+  // Check onboarding status after mount to avoid hydration mismatch
+  useEffect(() => {
+    if (localStorage.getItem('pupular-onboarded')) {
+      setView('location');
     }
-    return 'onboarding';
-  });
+  }, []);
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [favorites, setFavorites] = useState<Pet[]>([]);
   const [passed, setPassed] = useState<string[]>([]);
