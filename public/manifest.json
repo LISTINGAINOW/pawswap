@@ -1,21 +1,54 @@
 {
   "name": "Pupular",
   "short_name": "Pupular",
-  "description": "Swipe to find your perfect pet",
+  "description": "Swipe to find your perfect pet. Real adoptable dogs and cats from shelters near you.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6f7f4",
   "theme_color": "#7a8c63",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["lifestyle", "social"],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-1-hero.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Swipe through adoptable pets near you"
+    },
+    {
+      "src": "/screenshots/screenshot-2-quiz.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Take the pet personality quiz"
+    },
+    {
+      "src": "/screenshots/screenshot-3-favorites.png",
+      "sizes": "1290x2796",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Save favorites and contact shelters"
     }
   ]
 }

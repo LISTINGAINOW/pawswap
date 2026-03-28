@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Heart, RotateCcw, SlidersHorizontal, MapPin } from 'lucide-react';
+import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2 } from 'lucide-react';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import LocationPrompt from '@/components/LocationPrompt';
-import { mockPets, Pet } from '@/data/pets';
+import { Pet, mockPets } from '@/data/pets';
 
 // Lazy load heavy components
 const SwipeCard = dynamic(() => import('@/components/SwipeCard'), { ssr: false });
@@ -19,6 +19,7 @@ const TrendingBar = dynamic(() => import('@/components/TrendingBar'), { ssr: fal
 const AdoptionTips = dynamic(() => import('@/components/AdoptionTips'), { ssr: false });
 const PetOfTheDay = dynamic(() => import('@/components/PetOfTheDay'), { ssr: false });
 const QuizResults = dynamic(() => import('@/components/QuizResults'), { ssr: false });
+const DemoBanner = dynamic(() => import('@/components/DemoBanner'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -30,21 +31,21 @@ interface UserLocation {
   lat: number;
   lng: number;
   label: string;
+  zipCode?: string;
 }
 
 export default function Home() {
   const [view, setView] = useState<View>('onboarding');
+  const [mounted, setMounted] = useState(false);
 
-  // Check onboarding status after mount to avoid hydration mismatch
-  useEffect(() => {
-    if (localStorage.getItem('pupular-onboarded')) {
-      setView('location');
-    }
-  }, []);
+  // Data states
+  const [allPets, setAllPets] = useState<Pet[]>(mockPets);
+  const [dataSource, setDataSource] = useState<'live' | 'mock'>('mock');
+  const [loading, setLoading] = useState(false);
+
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [favorites, setFavorites] = useState<Pet[]>([]);
   const [passed, setPassed] = useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [detailPet, setDetailPet] = useState<Pet | null>(null);
   const [lastSaved, setLastSaved] = useState<Pet | null>(null);
   const [animalFilter, setAnimalFilter] = useState<AnimalFilter>('all');
@@ -53,6 +54,61 @@ export default function Home() {
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [quizMatches, setQuizMatches] = useState<Pet[]>([]);
+
+  // Mount check + restore from localStorage
+  useEffect(() => {
+    setMounted(true);
+    if (localStorage.getItem('pupular-onboarded')) {
+      setView('location');
+    }
+    // Restore favorites
+    try {
+      const saved = localStorage.getItem('pupular-favorites');
+      if (saved) setFavorites(JSON.parse(saved));
+    } catch { /* ignore */ }
+    // Restore location
+    try {
+      const savedLoc = localStorage.getItem('pupular-location');
+      if (savedLoc) {
+        const loc = JSON.parse(savedLoc);
+        setLocation(loc);
+        // Skip to swipe if we have location
+        if (localStorage.getItem('pupular-onboarded')) {
+          setView('swipe');
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist favorites
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('pupular-favorites', JSON.stringify(favorites));
+    }
+  }, [favorites, mounted]);
+
+  // Fetch pets from API when location changes
+  const fetchPets = useCallback(async (loc: UserLocation) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (loc.zipCode) params.set('zip', loc.zipCode);
+      params.set('limit', '40');
+      params.set('page', '1');
+
+      const res = await fetch(`/api/pets?${params}`);
+      if (!res.ok) throw new Error('API error');
+
+      const data = await res.json();
+      setAllPets(data.pets?.length > 0 ? data.pets : mockPets);
+      setDataSource(data.source || 'mock');
+    } catch {
+      setAllPets(mockPets);
+      setDataSource('mock');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Age matching helper
   const matchesAge = (petAge: string, filter: AgeFilter): boolean => {
@@ -69,7 +125,7 @@ export default function Home() {
     }
   };
 
-  const filteredPets = mockPets.filter((pet) => {
+  const filteredPets = allPets.filter((pet) => {
     if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
     if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
     if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
@@ -85,7 +141,6 @@ export default function Home() {
     if (pet) {
       setFavorites((prev) => [...prev, pet]);
       setLastSaved(pet);
-      setCurrentIndex((i) => i + 1);
     }
   }, [filteredPets]);
 
@@ -93,14 +148,12 @@ export default function Home() {
     const pet = filteredPets[0];
     if (pet) {
       setPassed((prev) => [...prev, pet.id]);
-      setCurrentIndex((i) => i + 1);
     }
   }, [filteredPets]);
 
   const handleUndo = () => {
     if (passed.length > 0) {
       setPassed((prev) => prev.slice(0, -1));
-      setCurrentIndex((i) => Math.max(0, i - 1));
     }
   };
 
@@ -110,22 +163,34 @@ export default function Home() {
 
   const resetAll = () => {
     setPassed([]);
-    setCurrentIndex(0);
+    if (location) fetchPets(location);
   };
 
   const handleLocationSet = (loc: UserLocation) => {
     setLocation(loc);
+    localStorage.setItem('pupular-location', JSON.stringify(loc));
+    fetchPets(loc);
     setView('quiz');
   };
+
+  // Don't render anything until mounted (prevents hydration mismatch)
+  if (!mounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-sage-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-6xl animate-bounce">🐾</div>
+          <p className="text-lg font-semibold text-sage-600">Loading Pupular...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Onboarding
   if (view === 'onboarding') {
     return (
       <OnboardingSlides
         onComplete={() => {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pupular-onboarded', 'true');
-          }
+          localStorage.setItem('pupular-onboarded', 'true');
           setView('location');
         }}
       />
@@ -196,7 +261,7 @@ export default function Home() {
           setAgeFilter('all');
           setGenderFilter('all');
         }}
-        resultCount={mockPets.filter((pet) => {
+        resultCount={allPets.filter((pet) => {
           if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
           if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
           if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
@@ -246,6 +311,9 @@ export default function Home() {
         </button>
       </header>
 
+      {/* Demo mode banner */}
+      <DemoBanner source={dataSource} />
+
       {/* Pet of the Day */}
       <PetOfTheDay onSelect={(pet) => setDetailPet(pet)} />
 
@@ -258,7 +326,13 @@ export default function Home() {
       {/* Card stack */}
       <main className="flex flex-1 items-center justify-center px-4 py-4">
         <div className="relative h-[560px] w-full max-w-[380px]">
-          {filteredPets.length === 0 ? (
+          {loading ? (
+            <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
+              <Loader2 className="h-12 w-12 animate-spin text-sage-400" />
+              <h2 className="mt-4 text-xl font-bold text-gray-700">Finding pets near you...</h2>
+              <p className="mt-2 text-sm text-gray-400">Searching shelters in your area</p>
+            </div>
+          ) : filteredPets.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               <div className="text-6xl">🐾</div>
               <h2 className="mt-4 text-2xl font-bold text-gray-800">All caught up!</h2>
@@ -273,7 +347,7 @@ export default function Home() {
                   onClick={resetAll}
                   className="flex items-center gap-2 rounded-2xl bg-sage-100 px-6 py-3 font-semibold text-sage-700 hover:bg-sage-200"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" />
                   Start Over
                 </button>
                 {favorites.length > 0 && (
