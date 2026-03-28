@@ -1,19 +1,33 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Heart, Search, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Heart, RotateCcw, SlidersHorizontal, MapPin } from 'lucide-react';
 import SwipeCard from '@/components/SwipeCard';
 import PetDetail from '@/components/PetDetail';
 import FavoritesList from '@/components/FavoritesList';
 import FilterPanel from '@/components/FilterPanel';
+import LocationPrompt from '@/components/LocationPrompt';
+import OnboardingSlides from '@/components/OnboardingSlides';
 import { mockPets, Pet } from '@/data/pets';
 
-type View = 'swipe' | 'favorites' | 'filters';
+type View = 'onboarding' | 'location' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
 type SizeFilter = 'all' | 'Small' | 'Medium' | 'Large' | 'Extra Large';
 
+interface UserLocation {
+  lat: number;
+  lng: number;
+  label: string;
+}
+
 export default function Home() {
-  const [view, setView] = useState<View>('swipe');
+  const [view, setView] = useState<View>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('pawswap-onboarded')) {
+      return 'location';
+    }
+    return 'onboarding';
+  });
+  const [location, setLocation] = useState<UserLocation | null>(null);
   const [favorites, setFavorites] = useState<Pet[]>([]);
   const [passed, setPassed] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,6 +61,7 @@ export default function Home() {
 
   const handleUndo = () => {
     if (passed.length > 0) {
+      const lastPassedId = passed[passed.length - 1];
       setPassed((prev) => prev.slice(0, -1));
       setCurrentIndex((i) => Math.max(0, i - 1));
     }
@@ -61,6 +76,31 @@ export default function Home() {
     setCurrentIndex(0);
   };
 
+  const handleLocationSet = (loc: UserLocation) => {
+    setLocation(loc);
+    setView('swipe');
+  };
+
+  // Onboarding
+  if (view === 'onboarding') {
+    return (
+      <OnboardingSlides
+        onComplete={() => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('pawswap-onboarded', 'true');
+          }
+          setView('location');
+        }}
+      />
+    );
+  }
+
+  // Location prompt
+  if (view === 'location') {
+    return <LocationPrompt onLocationSet={handleLocationSet} />;
+  }
+
+  // Favorites
   if (view === 'favorites') {
     return (
       <FavoritesList
@@ -72,6 +112,7 @@ export default function Home() {
     );
   }
 
+  // Filters
   if (view === 'filters') {
     return (
       <FilterPanel
@@ -96,23 +137,31 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-sage-50">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 pb-2 pt-4 safe-bottom">
+      <header className="flex items-center justify-between px-5 pb-2 pt-4">
         <button
           type="button"
           onClick={() => setView('filters')}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition hover:shadow-md"
         >
           <SlidersHorizontal className="h-5 w-5 text-gray-600" />
         </button>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-sage-700">
-            🐾 PawSwap
-          </h1>
+          <h1 className="text-2xl font-bold text-sage-700">🐾 PawSwap</h1>
+          {location && (
+            <button
+              type="button"
+              onClick={() => setView('location')}
+              className="mt-0.5 flex items-center gap-1 text-xs text-gray-400 hover:text-sage-500"
+            >
+              <MapPin className="h-3 w-3" />
+              {location.label}
+            </button>
+          )}
         </div>
         <button
           type="button"
           onClick={() => setView('favorites')}
-          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition hover:shadow-md"
         >
           <Heart className={`h-5 w-5 ${favorites.length > 0 ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
           {favorites.length > 0 && (
