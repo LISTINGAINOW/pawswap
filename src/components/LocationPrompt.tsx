@@ -4,7 +4,17 @@ import { useState } from 'react';
 import { MapPin, Navigation, Search } from 'lucide-react';
 
 interface Props {
-  onLocationSet: (location: { lat: number; lng: number; label: string }) => void;
+  onLocationSet: (location: { lat: number; lng: number; label: string; zipCode?: string }) => void;
+}
+
+// Validate zip code: 5 digits, non-empty
+function validateZip(zip: string): string | null {
+  if (!zip.trim()) return 'Please enter a zip code';
+  if (!/^\d{5}$/.test(zip)) return 'Please enter a valid 5-digit US zip code';
+  // Basic sanity: zip codes 00001–99999
+  const n = parseInt(zip);
+  if (n < 1 || n > 99999) return 'Please enter a valid zip code';
+  return null;
 }
 
 export default function LocationPrompt({ onLocationSet }: Props) {
@@ -14,7 +24,7 @@ export default function LocationPrompt({ onLocationSet }: Props) {
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation not supported by your browser');
+      setError('Geolocation is not supported by your browser');
       return;
     }
     setLoading(true);
@@ -28,8 +38,12 @@ export default function LocationPrompt({ onLocationSet }: Props) {
         });
         setLoading(false);
       },
-      () => {
-        setError('Could not get your location. Try entering a zip code instead.');
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setError('Location access was denied. Please enter a zip code instead.');
+        } else {
+          setError('Could not get your location. Please try entering a zip code.');
+        }
         setLoading(false);
       },
       { timeout: 10000 }
@@ -38,16 +52,24 @@ export default function LocationPrompt({ onLocationSet }: Props) {
 
   const handleZipSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!zipCode.match(/^\d{5}$/)) {
-      setError('Please enter a valid 5-digit zip code');
+    const validationError = validateZip(zipCode);
+    if (validationError) {
+      setError(validationError);
       return;
     }
-    // For now, use approximate coordinates. With real API, we'd geocode the zip.
     onLocationSet({
       lat: 0,
       lng: 0,
       label: `ZIP ${zipCode}`,
+      zipCode,
     });
+  };
+
+  const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Sanitize: only allow digits, max 5
+    const sanitized = e.target.value.replace(/\D/g, '').slice(0, 5);
+    setZipCode(sanitized);
+    if (error) setError('');
   };
 
   return (
@@ -64,50 +86,57 @@ export default function LocationPrompt({ onLocationSet }: Props) {
             type="button"
             onClick={handleGeolocation}
             disabled={loading}
+            aria-label={loading ? 'Finding your location…' : 'Use my current location'}
             className="flex w-full items-center justify-center gap-3 rounded-2xl bg-sage-500 py-4 text-lg font-semibold text-white transition hover:bg-sage-600 disabled:opacity-50"
           >
             {loading ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
             ) : (
-              <Navigation className="h-5 w-5" />
+              <Navigation className="h-5 w-5" aria-hidden="true" />
             )}
-            {loading ? 'Finding you...' : 'Use My Location'}
+            {loading ? 'Finding you…' : 'Use My Location'}
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" aria-hidden="true">
             <div className="h-px flex-1 bg-gray-200" />
             <span className="text-sm text-gray-400">or</span>
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           {/* Zip code */}
-          <form onSubmit={handleZipSubmit} className="flex gap-2">
+          <form onSubmit={handleZipSubmit} className="flex gap-2" noValidate>
             <div className="relative flex-1">
-              <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" aria-hidden="true" />
               <input
                 type="text"
                 inputMode="numeric"
-                pattern="\d{5}"
                 maxLength={5}
                 placeholder="Enter zip code"
                 value={zipCode}
-                onChange={(e) => {
-                  setZipCode(e.target.value.replace(/\D/g, ''));
-                  setError('');
-                }}
-                className="w-full rounded-2xl border-2 border-gray-200 bg-white py-4 pl-12 pr-4 text-lg outline-none transition focus:border-sage-400"
+                onChange={handleZipChange}
+                aria-label="Zip code"
+                aria-describedby={error ? 'zip-error' : undefined}
+                aria-invalid={!!error}
+                autoComplete="postal-code"
+                className={`w-full rounded-2xl border-2 bg-white py-4 pl-12 pr-4 text-lg outline-none transition ${
+                  error ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-sage-400'
+                }`}
               />
             </div>
             <button
               type="submit"
-              className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-warm-100 text-warm-600 transition hover:bg-warm-200"
+              aria-label="Search by zip code"
+              disabled={zipCode.length !== 5}
+              className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-warm-100 text-warm-600 transition hover:bg-warm-200 disabled:opacity-40"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-5 w-5" aria-hidden="true" />
             </button>
           </form>
 
           {error && (
-            <p className="text-sm text-red-500">{error}</p>
+            <p id="zip-error" role="alert" className="text-sm text-red-500">
+              {error}
+            </p>
           )}
         </div>
 

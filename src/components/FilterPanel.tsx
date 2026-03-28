@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, RotateCcw, Search } from 'lucide-react';
 import { mockPets } from '@/data/pets';
 
@@ -77,8 +77,18 @@ export default function FilterPanel({
 }: Props) {
   const breeds = getBreeds(animalFilter);
   const [breedSearch, setBreedSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const breedInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce breed search by 150ms for performance
+  const handleBreedInputChange = useCallback((value: string) => {
+    setBreedSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(value), 150);
+    if (!value) onBreedChange('all');
+  }, [onBreedChange]);
 
   // Persist filter selections to localStorage
   useEffect(() => {
@@ -95,8 +105,8 @@ export default function FilterPanel({
     else setBreedSearch('');
   }, [breedFilter]);
 
-  const filteredBreeds = breedSearch.trim()
-    ? breeds.filter(b => b.name.toLowerCase().includes(breedSearch.toLowerCase()))
+  const filteredBreeds = debouncedSearch.trim()
+    ? breeds.filter(b => b.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     : breeds;
 
   const handleBreedSelect = (name: string) => {
@@ -187,9 +197,8 @@ export default function FilterPanel({
               aria-autocomplete="list"
               aria-expanded={showSuggestions && filteredBreeds.length > 0}
               onChange={(e) => {
-                setBreedSearch(e.target.value);
+                handleBreedInputChange(e.target.value);
                 setShowSuggestions(true);
-                if (!e.target.value) onBreedChange('all');
               }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}

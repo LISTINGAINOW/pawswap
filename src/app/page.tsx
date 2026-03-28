@@ -73,6 +73,7 @@ export default function Home() {
   const [announcement, setAnnouncement] = useState('');
   const [heartPulse, setHeartPulse] = useState(false);
   const { streak, recordView } = useStreak();
+  const lastSwipeRef = useRef<number>(0);
 
   // Achievement tracking
   const userStats: UserStats = {
@@ -226,6 +227,11 @@ export default function Home() {
   });
 
   const handleSwipeRight = useCallback(() => {
+    // Throttle: max 1 swipe per 400ms to prevent spam
+    const now = Date.now();
+    if (now - lastSwipeRef.current < 400) return;
+    lastSwipeRef.current = now;
+
     const pet = filteredPets[0];
     if (pet) {
       setFavorites((prev) => [...prev, pet]);
@@ -240,6 +246,11 @@ export default function Home() {
   }, [filteredPets, recordView]);
 
   const handleSwipeLeft = useCallback(() => {
+    // Throttle: max 1 swipe per 400ms to prevent spam
+    const now = Date.now();
+    if (now - lastSwipeRef.current < 400) return;
+    lastSwipeRef.current = now;
+
     const pet = filteredPets[0];
     if (pet) {
       setPassed((prev) => [...prev, pet.id]);
