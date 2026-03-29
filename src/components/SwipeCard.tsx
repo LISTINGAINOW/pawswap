@@ -9,6 +9,30 @@ import type { Pet } from '@/data/pets';
 import type { Answer } from '@/lib/compatibility';
 import { getCompatibilityPct } from '@/lib/compatibility';
 
+function seededNum(petId: string, salt: string, min: number, max: number): number {
+  let hash = 0;
+  const str = petId + salt;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return (Math.abs(hash) % (max - min + 1)) + min;
+}
+
+function getUrgencyBadge(petId: string): { type: 'new' | 'popular' | 'waiting' | null; label: string } {
+  const variant = seededNum(petId, 'urgency-type', 0, 2);
+  if (variant === 0) {
+    const daysAgo = seededNum(petId, 'days-new', 1, 6);
+    return { type: 'new', label: `New! Added ${daysAgo}d ago` };
+  }
+  if (variant === 1) {
+    const count = seededNum(petId, 'popular-count', 8, 34);
+    return { type: 'popular', label: `${count} people saved this` };
+  }
+  const waitDays = seededNum(petId, 'wait-days', 30, 90);
+  return { type: 'waiting', label: `Waiting ${waitDays} days 💛` };
+}
+
 interface Props {
   pet: Pet;
   onSwipeLeft: () => void;
@@ -23,6 +47,7 @@ interface Props {
 
 export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTakeQuiz, isTop, quizAnswers = [], quizDone = false, isFirstCard = false }: Props) {
   const compatPct = quizDone && quizAnswers.length > 0 ? getCompatibilityPct(pet, quizAnswers) : null;
+  const urgencyBadge = getUrgencyBadge(pet.id);
   const [showHints, setShowHints] = useState(true);
   const [exitX, setExitX] = useState(0);
   const [showOverlay, setShowOverlay] = useState<'like' | 'nope' | null>(null);
@@ -192,6 +217,23 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
             <MapPin className="h-3 w-3" aria-hidden="true" />
             {pet.distance}
           </div>
+
+          {/* Urgency badge */}
+          {urgencyBadge.type && (
+            <div
+              className={`absolute bottom-20 left-3 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-md ${
+                urgencyBadge.type === 'new'
+                  ? 'bg-blue-500/90 text-white'
+                  : urgencyBadge.type === 'popular'
+                  ? 'bg-purple-500/90 text-white'
+                  : 'bg-amber-400/90 text-white'
+              }`}
+            >
+              {urgencyBadge.type === 'new' && '✨ '}
+              {urgencyBadge.type === 'popular' && '🔥 '}
+              {urgencyBadge.label}
+            </div>
+          )}
 
           {/* Compatibility badge */}
           {isTop && (
