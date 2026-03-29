@@ -8,7 +8,10 @@ export interface SupplyLink {
   url: string;
 }
 
-const BASE = 'https://www.chewy.com';
+const CHEWY = 'https://www.chewy.com';
+const AMAZON = 'https://www.amazon.com';
+const AMAZON_TAG = 'pupular20-20';
+const BASE = CHEWY; // Primary affiliate — swap to AMAZON when Chewy approved
 
 const DOG_LINKS: Record<string, Record<string, SupplyLink>> = {
   small: {
@@ -52,7 +55,29 @@ function getSizeKey(size: Pet['size']): 'small' | 'medium' | 'large' {
   return size.toLowerCase() as 'small' | 'medium' | 'large';
 }
 
-export function getSupplyLinks(pet: Pet): SupplyLink[] {
+// Amazon fallback links with real Associate ID
+const AMAZON_DOG: Record<string, SupplyLink> = {
+  food:    { category: 'Food',           emoji: '🥣', name: 'Dog Food',              priceRange: '$25–$65',  url: `${AMAZON}/s?k=dog+food&tag=${AMAZON_TAG}` },
+  bed:     { category: 'Bed',            emoji: '🛏️', name: 'Dog Bed',               priceRange: '$25–$90',  url: `${AMAZON}/s?k=dog+bed&tag=${AMAZON_TAG}` },
+  toys:    { category: 'Toys',           emoji: '🧸', name: 'Dog Toys',              priceRange: '$12–$30',  url: `${AMAZON}/s?k=dog+toys&tag=${AMAZON_TAG}` },
+  leash:   { category: 'Leash & Collar', emoji: '🦮', name: 'Leash & Collar Set',    priceRange: '$15–$45',  url: `${AMAZON}/s?k=dog+leash+collar&tag=${AMAZON_TAG}` },
+  crate:   { category: 'Crate',          emoji: '🏠', name: 'Dog Crate',             priceRange: '$35–$150', url: `${AMAZON}/s?k=dog+crate&tag=${AMAZON_TAG}` },
+  bowls:   { category: 'Bowls',          emoji: '🥤', name: 'Dog Bowls',             priceRange: '$10–$25',  url: `${AMAZON}/s?k=dog+bowls+stainless&tag=${AMAZON_TAG}` },
+};
+
+const AMAZON_CAT: Record<string, SupplyLink> = {
+  food:    { category: 'Food',           emoji: '🥣', name: 'Cat Food',              priceRange: '$20–$50',  url: `${AMAZON}/s?k=cat+food&tag=${AMAZON_TAG}` },
+  bed:     { category: 'Bed',            emoji: '🛏️', name: 'Cat Bed',               priceRange: '$20–$55',  url: `${AMAZON}/s?k=cat+bed&tag=${AMAZON_TAG}` },
+  toys:    { category: 'Toys',           emoji: '🧶', name: 'Cat Toys',              priceRange: '$10–$25',  url: `${AMAZON}/s?k=cat+toys&tag=${AMAZON_TAG}` },
+  collar:  { category: 'Collar',         emoji: '🏷️', name: 'Cat Collar',            priceRange: '$8–$18',   url: `${AMAZON}/s?k=breakaway+cat+collar&tag=${AMAZON_TAG}` },
+  litter:  { category: 'Litter Box',     emoji: '🧹', name: 'Litter Box + Litter',   priceRange: '$25–$60',  url: `${AMAZON}/s?k=cat+litter+box&tag=${AMAZON_TAG}` },
+  bowls:   { category: 'Bowls',          emoji: '🥤', name: 'Cat Bowls',             priceRange: '$12–$28',  url: `${AMAZON}/s?k=cat+bowls+ceramic&tag=${AMAZON_TAG}` },
+};
+
+export function getSupplyLinks(pet: Pet, source: 'chewy' | 'amazon' = 'amazon'): SupplyLink[] {
+  if (source === 'amazon') {
+    return Object.values(pet.type === 'cat' ? AMAZON_CAT : AMAZON_DOG);
+  }
   if (pet.type === 'cat') {
     return Object.values(CAT_LINKS);
   }
