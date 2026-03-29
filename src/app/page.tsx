@@ -302,16 +302,18 @@ export default function Home() {
     }
   };
 
-  const filteredPets = allPets.filter((pet) => {
-    if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
-    if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
-    if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
-    if (!matchesAge(pet.age, ageFilter)) return false;
-    if (genderFilter !== 'all' && pet.gender !== genderFilter) return false;
-    if (favorites.some((f) => f.id === pet.id)) return false;
-    if (passed.includes(pet.id)) return false;
-    return true;
-  });
+  const filteredPets = allPets
+    .filter((pet) => {
+      if (animalFilter !== 'all' && pet.type !== animalFilter) return false;
+      if (sizeFilter !== 'all' && pet.size !== sizeFilter) return false;
+      if (breedFilter !== 'all' && pet.breed !== breedFilter) return false;
+      if (!matchesAge(pet.age, ageFilter)) return false;
+      if (genderFilter !== 'all' && pet.gender !== genderFilter) return false;
+      if (favorites.some((f) => f.id === pet.id)) return false;
+      if (passed.includes(pet.id)) return false;
+      return true;
+    })
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
   // Preload first 2 pet images for smoother transitions
   useEffect(() => {
@@ -839,6 +841,8 @@ export default function Home() {
           <Link href="/stories" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Stories</Link>
           <span className="text-[11px] text-gray-200">·</span>
           <Link href="/about" className="text-[11px] text-gray-300 hover:text-gray-500 transition">About</Link>
+          <span className="text-[11px] text-gray-200">·</span>
+          <Link href="/for-shelters" className="text-[11px] text-gray-300 hover:text-gray-500 transition">For Shelters</Link>
           <span className="text-[11px] text-gray-200">·</span>
           <Link href="/privacy" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Privacy</Link>
           <span className="text-[11px] text-gray-200">·</span>

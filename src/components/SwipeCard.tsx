@@ -8,6 +8,7 @@ import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 import type { Answer } from '@/lib/compatibility';
 import { getCompatibilityPct } from '@/lib/compatibility';
+import FeaturedBadge from './FeaturedBadge';
 
 function seededNum(petId: string, salt: string, min: number, max: number): number {
   let hash = 0;
@@ -208,6 +209,13 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
 
           {/* Gradient overlay */}
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/30 to-transparent" aria-hidden="true" />
+
+          {/* Featured badge */}
+          {pet.featured && (
+            <div className="absolute left-3 top-3">
+              <FeaturedBadge />
+            </div>
+          )}
 
           {/* Distance badge */}
           <div

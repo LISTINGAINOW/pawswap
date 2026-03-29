@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Share2, X } from 'lucide-react';
 import Image from 'next/image';
 import { mockPets, Pet } from '@/data/pets';
+import { trackEvent } from '@/lib/analytics';
+import { trackRevenue } from '@/lib/revenue';
 
 interface Props {
   onSelect: (pet: Pet) => void;
@@ -20,15 +22,24 @@ export default function PetOfTheDay({ onSelect }: Props) {
     const dayOfYear = Math.floor(
       (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
     );
-    const index = dayOfYear % mockPets.length;
-    setPet(mockPets[index]);
+
+    // Prefer featured pets for sponsored Pet of the Day
+    const featuredPets = mockPets.filter((p) => p.featured);
+    const pool = featuredPets.length > 0 ? featuredPets : mockPets;
+    const index = dayOfYear % pool.length;
+    const selected = pool[index];
+    setPet(selected);
+
+    if (selected.featured) {
+      trackRevenue('featured_impression', undefined, { pet_id: selected.id, context: 'pet_of_the_day' });
+      trackEvent('sponsored_pet_viewed' as never, { pet_id: selected.id, shelter: selected.shelter });
+    }
 
     const lastDismissed = localStorage.getItem('pupular-potd-dismissed');
     if (lastDismissed === today.toDateString()) {
       setDismissed(true);
     }
 
-    // Sparkle entrance animation
     const t = setTimeout(() => setSparkle(true), 400);
     return () => clearTimeout(t);
   }, []);
@@ -55,6 +66,8 @@ export default function PetOfTheDay({ onSelect }: Props) {
 
   if (!pet || dismissed) return null;
 
+  const isSponsored = pet.featured;
+
   return (
     <div className={`mx-4 mt-3 transition-all duration-500 ${sparkle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 ring-2 ring-amber-200 shadow-sm">
@@ -79,7 +92,7 @@ export default function PetOfTheDay({ onSelect }: Props) {
           </div>
 
           {/* Info */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm">
                 ⭐ Pet of the Day
@@ -87,6 +100,11 @@ export default function PetOfTheDay({ onSelect }: Props) {
             </div>
             <p className="mt-0.5 text-sm font-bold text-gray-900">{pet.name}</p>
             <p className="text-xs text-amber-700">{pet.breed} · {pet.age} · {pet.distance}</p>
+            {isSponsored && (
+              <p className="mt-0.5 text-[10px] text-amber-600/70">
+                Sponsored by {pet.shelter}
+              </p>
+            )}
           </div>
         </button>
 

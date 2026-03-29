@@ -19,6 +19,8 @@ export interface Pet {
   goodWith: string[];
   adoptionFee: string;
   adoptionUrl: string;
+  /** Featured shelters pay for priority placement + badge */
+  featured?: boolean;
 }
 
 export const mockPets: Pet[] = [
@@ -46,6 +48,7 @@ export const mockPets: Pet[] = [
     goodWith: ['Kids', 'Other dogs', 'Cats'],
     adoptionFee: '$250',
     adoptionUrl: '#',
+    featured: true,
   },
   {
     id: '2',
@@ -71,6 +74,7 @@ export const mockPets: Pet[] = [
     goodWith: ['Adults', 'Other cats'],
     adoptionFee: '$150',
     adoptionUrl: '#',
+    featured: true,
   },
   {
     id: '3',
@@ -95,6 +99,7 @@ export const mockPets: Pet[] = [
     goodWith: ['Kids', 'Other dogs'],
     adoptionFee: '$300',
     adoptionUrl: '#',
+    featured: true,
   },
   {
     id: '4',

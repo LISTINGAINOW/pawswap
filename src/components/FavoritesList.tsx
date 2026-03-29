@@ -11,6 +11,8 @@ import { getCompatibilityPct } from '@/lib/compatibility';
 import { trackEvent } from '@/lib/analytics';
 import ShelterMap from './ShelterMap';
 import YourType from './YourType';
+import SupplyChecklist from './SupplyChecklist';
+import FeaturedBadge from './FeaturedBadge';
 
 /** Generate or retrieve a persistent referral code for this user. */
 function getOrCreateRefCode(): string {
@@ -56,6 +58,7 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [wingmanVotes, setWingmanVotes] = useState<Record<string, string>>({});
+  const [openSupplies, setOpenSupplies] = useState<string | null>(null);
 
   // Load wingman votes from localStorage
   useEffect(() => {
@@ -341,6 +344,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                         <div className="absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
                           {pet.type === 'dog' ? '🐕' : '🐈'}
                         </div>
+                        {pet.featured && (
+                          <div className="absolute left-0 right-0 top-0 flex justify-center py-1">
+                            <FeaturedBadge />
+                          </div>
+                        )}
                         {compat !== null && (
                           <div className={`absolute left-0 right-0 top-0 flex items-center justify-center py-1 text-[10px] font-bold ${compat >= 80 ? 'bg-green-500/90 text-white' : compat >= 50 ? 'bg-yellow-400/90 text-gray-900' : 'bg-red-400/90 text-white'}`}>
                             {compat}% match
@@ -404,6 +412,14 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                             <Share2 className="h-3 w-3" />
                             Share
                           </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setOpenSupplies(openSupplies === pet.id ? null : pet.id); }}
+                            aria-label={`Supplies for ${pet.name}`}
+                            className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100"
+                          >
+                            🛒 Supplies
+                          </button>
                         </div>
                       </div>
                       <button
@@ -415,6 +431,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                         <X className="h-5 w-5" aria-hidden="true" />
                       </button>
                     </div>
+                    {openSupplies === pet.id && (
+                      <div className="px-3 pb-3" onClick={(e) => e.stopPropagation()}>
+                        <SupplyChecklist pet={pet} />
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}

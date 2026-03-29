@@ -1,52 +1,62 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Check, Sparkles, Share2 } from 'lucide-react';
+import { ArrowLeft, Check, Sparkles, Share2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { trackRevenue } from '@/lib/revenue';
 
 interface CheckItem {
   id: string;
   text: string;
   category: string;
   emoji: string;
+  shopLabel?: string;
+  shopUrl?: string;
 }
+
+const CHEWY = 'https://www.chewy.com';
+const MAPS = 'https://www.google.com/maps/search/veterinarians+near+me';
 
 const checklistItems: CheckItem[] = [
   // Before the visit
-  { id: 'research', text: 'Research the breed/type — energy level, grooming needs, lifespan', category: 'Before the Visit', emoji: '📚' },
-  { id: 'landlord', text: 'Confirm pet policy with landlord (if renting)', category: 'Before the Visit', emoji: '🏠' },
-  { id: 'budget', text: 'Budget for initial costs: adoption fee + vet + supplies ($300-800)', category: 'Before the Visit', emoji: '💰' },
-  { id: 'schedule', text: 'Schedule a visit with the shelter', category: 'Before the Visit', emoji: '📅' },
-  { id: 'family', text: 'Make sure everyone in the household is on board', category: 'Before the Visit', emoji: '👨‍👩‍👧' },
+  { id: 'research',  text: 'Research the breed/type — energy level, grooming needs, lifespan', category: 'Before the Visit', emoji: '📚' },
+  { id: 'landlord',  text: 'Confirm pet policy with landlord (if renting)', category: 'Before the Visit', emoji: '🏠' },
+  { id: 'budget',    text: 'Budget for initial costs: adoption fee + vet + supplies ($300–800)', category: 'Before the Visit', emoji: '💰', shopLabel: 'Compare Pet Insurance →', shopUrl: '/insurance' },
+  { id: 'schedule',  text: 'Schedule a visit with the shelter', category: 'Before the Visit', emoji: '📅' },
+  { id: 'family',    text: 'Make sure everyone in the household is on board', category: 'Before the Visit', emoji: '👨‍👩‍👧' },
 
   // At the shelter
-  { id: 'history', text: 'Ask about the pet\'s history and behavior', category: 'At the Shelter', emoji: '❓' },
-  { id: 'medical', text: 'Get medical records (vaccinations, spay/neuter, microchip)', category: 'At the Shelter', emoji: '💊' },
-  { id: 'food', text: 'Ask what food they\'ve been eating (transition slowly)', category: 'At the Shelter', emoji: '🥘' },
-  { id: 'meet', text: 'If you have other pets, arrange a meet-and-greet', category: 'At the Shelter', emoji: '🤝' },
+  { id: 'history',   text: "Ask about the pet's history and behavior", category: 'At the Shelter', emoji: '❓' },
+  { id: 'medical',   text: 'Get medical records (vaccinations, spay/neuter, microchip)', category: 'At the Shelter', emoji: '💊' },
+  { id: 'food',      text: "Ask what food they've been eating (transition slowly)", category: 'At the Shelter', emoji: '🥘', shopLabel: 'Shop Dog & Cat Food →', shopUrl: `${CHEWY}/b/food?utm_source=pupular` },
+  { id: 'meet',      text: 'If you have other pets, arrange a meet-and-greet', category: 'At the Shelter', emoji: '🤝' },
   { id: 'questions', text: 'Ask: "What should I know that isn\'t on the profile?"', category: 'At the Shelter', emoji: '💡' },
 
   // Preparing your home
-  { id: 'petproof', text: 'Pet-proof the house: secure cables, remove toxic plants', category: 'Preparing Home', emoji: '🔒' },
-  { id: 'space', text: 'Set up their space: bed, food/water bowls, crate if needed', category: 'Preparing Home', emoji: '🛏️' },
-  { id: 'supplies', text: 'Buy supplies: leash/harness, collar + ID tag, toys, treats', category: 'Preparing Home', emoji: '🛍️' },
-  { id: 'litter', text: 'For cats: litter box in a quiet location (1 per cat + 1 extra)', category: 'Preparing Home', emoji: '🧹' },
-  { id: 'vet', text: 'Schedule a vet appointment within the first week', category: 'Preparing Home', emoji: '🩺' },
+  { id: 'petproof',  text: 'Pet-proof the house: secure cables, remove toxic plants', category: 'Preparing Home', emoji: '🔒' },
+  { id: 'space',     text: 'Set up their space: bed, food/water bowls, crate if needed', category: 'Preparing Home', emoji: '🛏️', shopLabel: 'Shop Beds & Crates →', shopUrl: `${CHEWY}/b/beds-furniture?utm_source=pupular` },
+  { id: 'supplies',  text: 'Buy supplies: leash/harness, collar + ID tag, toys, treats', category: 'Preparing Home', emoji: '🛍️', shopLabel: 'Shop Supplies on Chewy →', shopUrl: `${CHEWY}/b/new-pet-essentials?utm_source=pupular` },
+  { id: 'litter',    text: 'For cats: litter box in a quiet location (1 per cat + 1 extra)', category: 'Preparing Home', emoji: '🧹', shopLabel: 'Shop Litter Boxes →', shopUrl: `${CHEWY}/b/litter-boxes?utm_source=pupular` },
+  { id: 'vet',       text: 'Schedule a vet appointment within the first week', category: 'Preparing Home', emoji: '🩺', shopLabel: 'Find Vets Near You →', shopUrl: MAPS },
 
   // First week
-  { id: 'decompress', text: 'Give them 3 days to decompress — don\'t overwhelm with visitors', category: 'First Week', emoji: '🕊️' },
-  { id: 'routine', text: 'Establish a routine: same feeding times, walk times, sleep spot', category: 'First Week', emoji: '⏰' },
-  { id: 'patience', text: 'Be patient — accidents and anxiety are normal at first', category: 'First Week', emoji: '💛' },
-  { id: 'bond', text: 'Bond through gentle play, treats, and just being present', category: 'First Week', emoji: '❤️' },
-  { id: 'photos', text: 'Take photos and celebrate your new family member!', category: 'First Week', emoji: '📸' },
+  { id: 'decompress', text: "Give them 3 days to decompress — don't overwhelm with visitors", category: 'First Week', emoji: '🕊️' },
+  { id: 'routine',    text: 'Establish a routine: same feeding times, walk times, sleep spot', category: 'First Week', emoji: '⏰' },
+  { id: 'patience',   text: 'Be patient — accidents and anxiety are normal at first', category: 'First Week', emoji: '💛' },
+  { id: 'bond',       text: 'Bond through gentle play, treats, and just being present', category: 'First Week', emoji: '❤️', shopLabel: 'Shop Toys & Treats →', shopUrl: `${CHEWY}/b/toys?utm_source=pupular` },
+  { id: 'insurance',  text: 'Set up pet insurance before the first vet visit', category: 'First Week', emoji: '🛡️', shopLabel: 'Compare Pet Insurance →', shopUrl: '/insurance' },
+  { id: 'photos',     text: 'Take photos and celebrate your new family member!', category: 'First Week', emoji: '📸' },
 ];
 
 const categories = ['Before the Visit', 'At the Shelter', 'Preparing Home', 'First Week'];
 
+function isExternal(url: string) {
+  return url.startsWith('http');
+}
+
 export default function ChecklistPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
-  // Persist to localStorage
   useEffect(() => {
     const saved = localStorage.getItem('pupular-checklist');
     if (saved) setChecked(new Set(JSON.parse(saved)));
@@ -60,6 +70,15 @@ export default function ChecklistPage() {
       localStorage.setItem('pupular-checklist', JSON.stringify([...next]));
       return next;
     });
+  };
+
+  const handleShopClick = (item: CheckItem) => {
+    if (!item.shopUrl) return;
+    trackRevenue(
+      isExternal(item.shopUrl) ? 'affiliate_click' : 'insurance_referral',
+      undefined,
+      { checklist_item: item.id },
+    );
   };
 
   const totalChecked = checked.size;
@@ -134,28 +153,49 @@ export default function ChecklistPage() {
                 {items.map((item) => {
                   const isChecked = checked.has(item.id);
                   return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => toggleItem(item.id)}
-                      className={`flex w-full items-start gap-3 rounded-xl p-3.5 text-left transition-all ${
-                        isChecked
-                          ? 'bg-sage-100 ring-1 ring-sage-200'
-                          : 'bg-white ring-1 ring-black/5 hover:ring-sage-200'
-                      }`}
-                    >
-                      <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${
-                        isChecked ? 'bg-sage-500 text-white' : 'border-2 border-gray-300'
-                      }`}>
-                        {isChecked && <Check className="h-3.5 w-3.5" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`text-sm ${isChecked ? 'text-sage-700 line-through' : 'text-gray-700'}`}>
-                          <span className="mr-1.5">{item.emoji}</span>
-                          {item.text}
-                        </p>
-                      </div>
-                    </button>
+                    <div key={item.id} className={`rounded-xl transition-all ${isChecked ? 'bg-sage-100 ring-1 ring-sage-200' : 'bg-white ring-1 ring-black/5 hover:ring-sage-200'}`}>
+                      <button
+                        type="button"
+                        onClick={() => toggleItem(item.id)}
+                        className="flex w-full items-start gap-3 p-3.5 text-left"
+                      >
+                        <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${
+                          isChecked ? 'bg-sage-500 text-white' : 'border-2 border-gray-300'
+                        }`}>
+                          {isChecked && <Check className="h-3.5 w-3.5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className={`text-sm ${isChecked ? 'text-sage-700 line-through' : 'text-gray-700'}`}>
+                            <span className="mr-1.5">{item.emoji}</span>
+                            {item.text}
+                          </p>
+                        </div>
+                      </button>
+                      {item.shopUrl && !isChecked && (
+                        <div className="px-3.5 pb-3 pl-[52px]">
+                          {isExternal(item.shopUrl) ? (
+                            <a
+                              href={item.shopUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => handleShopClick(item)}
+                              className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-800 hover:underline"
+                            >
+                              {item.shopLabel}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <Link
+                              href={item.shopUrl}
+                              onClick={() => handleShopClick(item)}
+                              className="inline-flex items-center gap-1 text-xs text-sage-600 hover:text-sage-700 hover:underline"
+                            >
+                              {item.shopLabel}
+                            </Link>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
