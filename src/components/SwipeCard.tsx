@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
-import { Heart, X, MapPin, Info, Share2, Sparkles } from 'lucide-react';
+import { Heart, X, MapPin, Info, Share2, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { hapticMedium, hapticSuccess } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 import type { Answer } from '@/lib/compatibility';
 import { getCompatibilityPct } from '@/lib/compatibility';
 import FeaturedBadge from './FeaturedBadge';
+import { safeGet, safeSet } from '@/utils/storage';
 
 function seededNum(petId: string, salt: string, min: number, max: number): number {
   let hash = 0;
@@ -49,7 +50,7 @@ interface Props {
 export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTakeQuiz, isTop, quizAnswers = [], quizDone = false, isFirstCard = false }: Props) {
   const compatPct = quizDone && quizAnswers.length > 0 ? getCompatibilityPct(pet, quizAnswers) : null;
   const urgencyBadge = getUrgencyBadge(pet.id);
-  const [showHints, setShowHints] = useState(true);
+  const [showHints, setShowHints] = useState(false);
   const [exitX, setExitX] = useState(0);
   const [showOverlay, setShowOverlay] = useState<'like' | 'nope' | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -60,22 +61,34 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
   const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
   const scale = useTransform(x, [-300, 0, 300], [0.95, 1, 0.95]);
 
+  // Check if user has ever swiped (hints only show for first-time users)
+  useEffect(() => {
+    const hasSwiped = safeGet('pupular-has-swiped');
+    if (!hasSwiped && isFirstCard && isTop) {
+      setShowHints(true);
+    }
+  }, [isFirstCard, isTop]);
+
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
       hapticSuccess();
       setExitX(500);
       setShowOverlay('like');
+      safeSet('pupular-has-swiped', 'true');
       setTimeout(onSwipeRight, 300);
     } else if (info.offset.x < -threshold) {
       hapticMedium();
       setExitX(-500);
       setShowOverlay('nope');
+      safeSet('pupular-has-swiped', 'true');
       setTimeout(onSwipeLeft, 300);
     }
   };
 
   const handleButtonSwipe = (direction: 'left' | 'right') => {
+    safeSet('pupular-has-swiped', 'true');
+    setShowHints(false);
     if (direction === 'right') {
       hapticSuccess();
       setExitX(500);
@@ -341,21 +354,41 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
             </div>
           )}
 
-          {/* Swipe hint arrows — only for first card, auto-fade after 3 loops */}
-          {isFirstCard && isTop && (
+          {/* Swipe hint arrows — only for first-time users, disappears after first swipe */}
+          {isTop && showHints && (
             <AnimatePresence>
-              {showHints && (
+              <motion.div
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between px-4 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Left hint */}
                 <motion.div
-                  className="flex items-center justify-center gap-8 pb-1 pt-0.5"
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{ repeat: 3, duration: 1.2 }}
-                  onAnimationComplete={() => setShowHints(false)}
-                  aria-hidden="true"
+                  className="flex flex-col items-center gap-1"
+                  animate={{ x: [0, -8, 0], opacity: [0.6, 1, 0.6] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
                 >
-                  <span className="text-xs font-medium text-gray-400">← Skip</span>
-                  <span className="text-xs font-medium text-gray-400">Save →</span>
+                  <div className="flex items-center gap-1 rounded-full bg-black/50 px-3 py-2 backdrop-blur-sm">
+                    <ChevronLeft className="h-6 w-6 text-white" />
+                    <ChevronLeft className="h-6 w-6 text-white -ml-4" />
+                  </div>
+                  <span className="text-sm font-semibold text-white drop-shadow-lg">Skip</span>
                 </motion.div>
-              )}
+
+                {/* Right hint */}
+                <motion.div
+                  className="flex flex-col items-center gap-1"
+                  animate={{ x: [0, 8, 0], opacity: [0.6, 1, 0.6] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  <div className="flex items-center gap-1 rounded-full bg-green-500/80 px-3 py-2 backdrop-blur-sm">
+                    <ChevronRight className="h-6 w-6 text-white -mr-4" />
+                    <ChevronRight className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-white drop-shadow-lg">Save ❤️</span>
+                </motion.div>
+              </motion.div>
             </AnimatePresence>
           )}
         </div>

@@ -670,7 +670,7 @@ export default function Home() {
 
       {/* Card stack */}
       <main id="main-content" className="flex flex-1 min-h-0 items-center justify-center px-4 py-2">
-        <div className="relative w-full max-w-[380px]" style={{ height: 'clamp(300px, calc(100svh - 370px), 560px)' }}>
+        <div className="relative w-full max-w-[380px]" style={{ height: 'clamp(400px, calc(100svh - 300px), 620px)' }}>
           {loading ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               <Loader2 className="h-12 w-12 animate-spin text-sage-400" />
