@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Heart, MapPin, Phone, Mail, Clock, ExternalLink, ChevronLeft, ChevronRight, DollarSign } from 'lucide-react';
+import { X, Heart, MapPin, Phone, Mail, Clock, ExternalLink, ChevronLeft, ChevronRight, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import type { Pet } from '@/data/pets';
@@ -12,13 +12,86 @@ interface Props {
   isFavorited: boolean;
 }
 
+function getHumanAge(pet: Pet): string | null {
+  const ageLower = pet.age.toLowerCase();
+  const monthsMatch = ageLower.match(/(\d+)\s*month/);
+  const yearsMatch = ageLower.match(/(\d+)\s*year/);
+
+  let humanYears: number;
+
+  if (monthsMatch) {
+    const months = parseInt(monthsMatch[1]);
+    humanYears = Math.round((months / 12) * 15);
+  } else if (yearsMatch) {
+    const years = parseInt(yearsMatch[1]);
+    if (years <= 0) return null;
+
+    if (pet.type === 'cat') {
+      if (years === 1) humanYears = 15;
+      else humanYears = 24 + (years - 2) * 4;
+    } else {
+      const perYear = (pet.size === 'Large' || pet.size === 'Extra Large') ? 5 : 4;
+      if (years === 1) humanYears = 15;
+      else humanYears = 24 + (years - 2) * perYear;
+    }
+  } else {
+    return null;
+  }
+
+  return `${pet.name} is ${pet.age} — about ${humanYears} in human years`;
+}
+
+function getFirstYearCosts(pet: Pet): { total: { low: number; high: number }; breakdown: { category: string; low: number; high: number }[] } {
+  const isLarge = pet.size === 'Large' || pet.size === 'Extra Large';
+  const isCat = pet.type === 'cat';
+
+  if (isCat) {
+    return {
+      total: { low: 800, high: 1400 },
+      breakdown: [
+        { category: 'Food & treats', low: 200, high: 400 },
+        { category: 'Vet care', low: 300, high: 600 },
+        { category: 'Supplies & toys', low: 150, high: 250 },
+        { category: 'Pet insurance', low: 150, high: 150 },
+      ],
+    };
+  }
+
+  if (isLarge) {
+    return {
+      total: { low: 2000, high: 2500 },
+      breakdown: [
+        { category: 'Food & treats', low: 700, high: 1000 },
+        { category: 'Vet care', low: 700, high: 1000 },
+        { category: 'Supplies & toys', low: 300, high: 300 },
+        { category: 'Pet insurance', low: 300, high: 200 },
+      ],
+    };
+  }
+
+  return {
+    total: { low: 1000, high: 2000 },
+    breakdown: [
+      { category: 'Food & treats', low: 300, high: 600 },
+      { category: 'Vet care', low: 400, high: 800 },
+      { category: 'Supplies & toys', low: 200, high: 400 },
+      { category: 'Pet insurance', low: 100, high: 200 },
+    ],
+  };
+}
+
+function fmt(n: number) { return `$${n.toLocaleString()}`; }
+
 export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [showCosts, setShowCosts] = useState(false);
   const [imgError, setImgError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Focus first element on open and trap focus inside modal
+  const humanAge = getHumanAge(pet);
+  const costs = getFirstYearCosts(pet);
+
   useEffect(() => {
     closeBtnRef.current?.focus();
     const focusable = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
@@ -77,7 +150,6 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             <X className="h-5 w-5 text-white" aria-hidden="true" />
           </button>
 
-          {/* Photo nav */}
           {pet.photos.length > 1 && (
             <>
               <button
@@ -107,7 +179,6 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             </>
           )}
 
-          {/* Type badge */}
           <div className="absolute left-4 top-4 rounded-full bg-black/30 px-3 py-1 text-sm backdrop-blur-md">
             <span className="text-white" aria-label={`Type: ${pet.type}`}>{pet.type === 'dog' ? '🐕' : '🐈'} {pet.breed}</span>
           </div>
@@ -115,7 +186,6 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
 
         {/* Content */}
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">{pet.name}</h2>
@@ -129,7 +199,13 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             )}
           </div>
 
-          {/* Description */}
+          {/* Human age fun fact */}
+          {humanAge && (
+            <div className="mt-3 rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800">
+              🎂 {humanAge}
+            </div>
+          )}
+
           <p className="mt-4 text-base leading-relaxed text-gray-600">{pet.description}</p>
 
           {/* Traits */}
@@ -137,11 +213,7 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-400">Traits</h3>
             <div className="flex flex-wrap gap-2" role="list">
               {pet.traits.map((trait) => (
-                <span
-                  key={trait}
-                  role="listitem"
-                  className="rounded-full bg-sage-50 px-3 py-1 text-sm font-medium text-sage-700"
-                >
+                <span key={trait} role="listitem" className="rounded-full bg-sage-50 px-3 py-1 text-sm font-medium text-sage-700">
                   {trait}
                 </span>
               ))}
@@ -154,11 +226,7 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-400">Good with</h3>
               <div className="flex flex-wrap gap-2" role="list">
                 {pet.goodWith.map((item) => (
-                  <span
-                    key={item}
-                    role="listitem"
-                    className="rounded-full bg-sky-50 px-3 py-1 text-sm font-medium text-sky-600"
-                  >
+                  <span key={item} role="listitem" className="rounded-full bg-sky-50 px-3 py-1 text-sm font-medium text-sky-600">
                     ✓ {item}
                   </span>
                 ))}
@@ -166,8 +234,51 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             </div>
           )}
 
+          {/* First-year cost estimator */}
+          <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200">
+            <button
+              type="button"
+              onClick={() => setShowCosts(!showCosts)}
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-gray-50"
+              aria-expanded={showCosts}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💰</span>
+                <div>
+                  <p className="font-semibold text-gray-900">Estimated first-year costs</p>
+                  <p className="text-xs text-gray-500">
+                    {fmt(costs.total.low)}–{fmt(costs.total.high)} · {pet.size.toLowerCase()} {pet.type}
+                  </p>
+                </div>
+              </div>
+              {showCosts
+                ? <ChevronUp className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+                : <ChevronDown className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+              }
+            </button>
+            {showCosts && (
+              <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+                <div className="space-y-2.5">
+                  {costs.breakdown.map((item) => (
+                    <div key={item.category} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{item.category}</span>
+                      <span className="font-medium text-gray-800">{fmt(item.low)}–{fmt(item.high)}</span>
+                    </div>
+                  ))}
+                  <div className="mt-2 border-t border-gray-100 pt-2.5 flex items-center justify-between text-sm font-semibold">
+                    <span className="text-gray-700">Total estimate</span>
+                    <span className="text-sage-700">{fmt(costs.total.low)}–{fmt(costs.total.high)}</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
+                  Estimates vary by region. Many shelter pets are already spayed/neutered and vaccinated, which reduces first-year vet costs.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Shelter info */}
-          <div className="mt-6 overflow-hidden rounded-2xl border border-sage-200 bg-sage-50">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-sage-200 bg-sage-50">
             <div className="border-b border-sage-200 px-4 py-3">
               <h3 className="font-bold text-gray-900">{pet.shelter}</h3>
             </div>
@@ -202,21 +313,21 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
               onClick={onFavorite}
               aria-label={isFavorited ? `Remove ${pet.name} from favorites` : `Save ${pet.name} to favorites`}
               aria-pressed={isFavorited}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-4 text-lg font-semibold transition-all ${
+              className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold transition-all ${
                 isFavorited
                   ? 'bg-red-50 text-red-500 ring-2 ring-red-200'
                   : 'bg-sage-100 text-sage-700 hover:bg-sage-200'
               }`}
             >
               <Heart className={`h-5 w-5 ${isFavorited ? 'fill-red-500' : ''}`} aria-hidden="true" />
-              {isFavorited ? 'Saved ♥' : 'Save'}
+              {isFavorited ? 'Saved to Favorites' : 'Save to Favorites'}
             </button>
             <a
               href={pet.adoptionUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Apply to adopt ${pet.name} (opens in new tab)`}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-500 py-4 text-lg font-semibold text-white transition-all hover:bg-sage-600"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-500 py-4 text-base font-semibold text-white transition-all hover:bg-sage-600"
             >
               <ExternalLink className="h-5 w-5" aria-hidden="true" />
               Apply to Adopt
