@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { Heart, ArrowLeft, BookOpen } from 'lucide-react';
 
 export default function About() {
   return (
@@ -62,6 +62,20 @@ export default function About() {
             <p className="mt-3 leading-relaxed text-gray-600">
               Want your adoptable pets on Pupular? We pull data from RescueGroups.org and Petfinder — if your shelter is listed there, your pets are already here. No extra work needed.
             </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-gray-900">Real adoption stories</h2>
+            <p className="mt-3 leading-relaxed text-gray-600">
+              Need a little inspiration? Read about the pets who found their forever homes — and the humans who found theirs too.
+            </p>
+            <Link
+              href="/stories"
+              className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-sage-500 px-5 py-3 font-semibold text-white transition hover:bg-sage-600"
+            >
+              <BookOpen className="h-4 w-4" />
+              Read Adoption Stories
+            </Link>
           </section>
 
           <section className="rounded-2xl bg-sage-100 p-6 text-center">
