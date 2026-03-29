@@ -294,26 +294,23 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
           </div>
         </div>
 
-        {/* Info section — fixed height so buttons always fit regardless of card height */}
-        <div className="flex h-[165px] flex-none flex-col justify-between p-4">
-          <div>
-            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Traits">
-              {pet.traits.slice(0, 4).map((trait) => (
-                <span
-                  key={trait}
-                  role="listitem"
-                  className="rounded-full bg-sage-100 px-2.5 py-1 text-xs font-medium text-sage-700"
-                >
-                  {trait}
-                </span>
-              ))}
-              {pet.goodWith.length > 0 && (
-                <span role="listitem" className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-600">
-                  Good with {pet.goodWith[0].toLowerCase()}
-                </span>
-              )}
-            </div>
-            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">{pet.description}</p>
+        {/* Info section — compact to maximize photo space */}
+        <div className="flex h-[110px] flex-none flex-col justify-between px-4 py-3">
+          <div className="flex flex-wrap gap-1.5" role="list" aria-label="Traits">
+            {pet.traits.slice(0, 3).map((trait) => (
+              <span
+                key={trait}
+                role="listitem"
+                className="rounded-full bg-sage-100 px-2.5 py-1 text-xs font-medium text-sage-700"
+              >
+                {trait}
+              </span>
+            ))}
+            {pet.goodWith.length > 0 && (
+              <span role="listitem" className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-600">
+                Good with {pet.goodWith[0].toLowerCase()}
+              </span>
+            )}
           </div>
 
           {/* Action buttons */}
