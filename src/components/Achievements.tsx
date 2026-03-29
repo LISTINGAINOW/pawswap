@@ -119,7 +119,7 @@ export function AchievementBadge({ achievement, onDismiss }: BadgeProps) {
           className="fixed left-4 right-4 top-4 z-[60] mx-auto max-w-sm"
           onClick={onDismiss}
         >
-          <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 px-5 py-4 shadow-xl">
+          <div role="alert" aria-live="assertive" className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 px-5 py-4 shadow-xl">
             <motion.div
               initial={{ rotate: -20, scale: 0 }}
               animate={{ rotate: 0, scale: 1 }}

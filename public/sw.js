@@ -1,17 +1,25 @@
-const CACHE_NAME = 'pupular-v1';
+const CACHE_VERSION = 2;
+const CACHE_NAME = `pupular-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/';
+
+// App shell + placeholder for offline broken images
+const PRECACHE_URLS = [
+  OFFLINE_URL,
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/placeholder-pet.png',
+];
 
 // Install: cache the app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll([OFFLINE_URL, '/manifest.json', '/icon-192.png', '/icon-512.png'])
-    )
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate: clean up old cache versions
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -21,7 +29,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API, cache-first for assets
+// Fetch: network-first for API, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -29,12 +37,14 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET and chrome-extension requests
   if (request.method !== 'GET' || url.protocol === 'chrome-extension:') return;
 
-  // API calls: network only, don't cache
+  // API calls: network-first, return offline JSON on failure
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request).catch(() => new Response(JSON.stringify({ error: 'offline' }), {
-        headers: { 'Content-Type': 'application/json' },
-      }))
+      fetch(request).catch(() =>
+        new Response(JSON.stringify({ error: 'offline' }), {
+          headers: { 'Content-Type': 'application/json' },
+        })
+      )
     );
     return;
   }
@@ -48,12 +58,14 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(OFFLINE_URL).then((r) => r || new Response('Offline')))
+        .catch(() =>
+          caches.match(OFFLINE_URL).then((r) => r || new Response('Offline'))
+        )
     );
     return;
   }
 
-  // Static assets: cache-first
+  // Static assets: cache-first, network fallback
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;

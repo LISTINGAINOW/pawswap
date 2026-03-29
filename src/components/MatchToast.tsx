@@ -44,6 +44,8 @@ export default function MatchToast({ pet, onDismiss }: Props) {
           className="fixed bottom-24 left-4 right-4 z-40 mx-auto max-w-sm"
         >
           <div
+            role="alert"
+            aria-live="polite"
             className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
             onClick={onDismiss}
           >
