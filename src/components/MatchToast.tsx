@@ -7,6 +7,9 @@ import type { Pet } from '@/data/pets';
 interface Props {
   pet: Pet | null;
   onDismiss: () => void;
+  favoriteNumber?: number;
+  isFirstFav?: boolean;
+  isFifthFav?: boolean;
 }
 
 const funMessages = [
@@ -25,7 +28,7 @@ function getRandomMessage(pet: Pet): string {
   return msg.replace(/\{name\}/g, pet.name).replace(/\{shelter\}/g, pet.shelter);
 }
 
-export default function MatchToast({ pet, onDismiss }: Props) {
+export default function MatchToast({ pet, onDismiss, isFirstFav = false, isFifthFav = false }: Props) {
   useEffect(() => {
     if (pet) {
       const timer = setTimeout(onDismiss, 3500);
@@ -49,17 +52,45 @@ export default function MatchToast({ pet, onDismiss }: Props) {
             className="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-xl ring-1 ring-black/5"
             onClick={onDismiss}
           >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100">
-              <span className="text-2xl">{pet.type === 'dog' ? '🐕' : '🐈'}</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900">
-                {pet.name} saved! ❤️
-              </p>
-              <p className="mt-0.5 text-xs text-gray-500">
-                {getRandomMessage(pet)}
-              </p>
-            </div>
+            {isFirstFav ? (
+              <>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100">
+                  <span className="text-2xl">❤️</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-900">❤️ Saved!</p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    You can find {pet.name} in Favorites anytime
+                  </p>
+                </div>
+              </>
+            ) : isFifthFav ? (
+              <>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100">
+                  <span className="text-2xl">🔥</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-900">You&apos;re on fire! 🔥</p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    Check your Favorites to see your top picks
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100">
+                  <span className="text-2xl">{pet.type === 'dog' ? '🐕' : '🐈'}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-900">
+                    {pet.name} saved! ❤️
+                  </p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {getRandomMessage(pet)}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </motion.div>
       )}
