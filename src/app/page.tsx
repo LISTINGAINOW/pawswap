@@ -11,6 +11,7 @@ import { useStreak } from '@/components/DailyStreak';
 import { useAchievements, AchievementBadge, TrophyCase, UserStats } from '@/components/Achievements';
 import { hapticLight } from '@/lib/haptics';
 import { safeGet, safeSet, safeSetJSON, safeGetJSON, pruneStorageIfNeeded } from '@/utils/storage';
+import { trackEvent } from '@/lib/analytics';
 import type { Answer } from '@/lib/compatibility';
 
 // Lazy load heavy components
@@ -111,6 +112,24 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     pruneStorageIfNeeded();
+
+    // ── Cohort tracking: assign on first visit ──────────────────────────────
+    if (!safeGet('pupular-cohort')) {
+      const d = new Date();
+      const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const label = `${months[d.getMonth()]}-${d.getDate()}-early-adopters`;
+      safeSet('pupular-cohort', label);
+    }
+
+    // ── Referral: capture ?ref= param on landing ────────────────────────────
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref && !safeGet('pupular-referrer')) {
+        safeSet('pupular-referrer', ref);
+        trackEvent('referral_received', { ref });
+      }
+    } catch { /* ignore */ }
 
     if (safeGet('pupular-onboarded')) setView('location');
 
@@ -282,6 +301,8 @@ export default function Home() {
       setAnnouncement(`Saved ${pet.name} to favorites`);
       setHeartPulse(true);
       setTimeout(() => setHeartPulse(false), 600);
+      trackEvent('pet_swiped_right', { petId: pet.id, petName: pet.name, breed: pet.breed });
+      trackEvent('pet_favorited', { petId: pet.id, petName: pet.name, breed: pet.breed });
     }
   }, [filteredPets, recordView]);
 
@@ -297,6 +318,7 @@ export default function Home() {
       setTotalSwiped(n => n + 1);
       recordView();
       setAnnouncement(`Passed on ${pet.name}`);
+      trackEvent('pet_swiped_left', { petId: pet.id, petName: pet.name, breed: pet.breed });
     }
   }, [filteredPets, recordView]);
 
@@ -315,10 +337,16 @@ export default function Home() {
     if (location) fetchPets(location);
   };
 
+  const handleSelectPet = (pet: Pet) => {
+    setDetailPet(pet);
+    trackEvent('pet_detail_opened', { petId: pet.id, petName: pet.name, breed: pet.breed });
+  };
+
   const handleLocationSet = (loc: UserLocation) => {
     setLocation(loc);
     safeSetJSON('pupular-location', loc);
     fetchPets(loc);
+    trackEvent('quiz_started');
     setView('quiz');
   };
 
@@ -356,6 +384,7 @@ export default function Home() {
           setQuizDone(true);
           safeSet('pupular-quiz-done', 'true');
           safeSetJSON('pupular-quiz-answers', answers);
+          trackEvent('quiz_completed', { matchCount: matches.length });
           setView('quiz-results');
         }}
         onSkip={() => setView('swipe')}
@@ -370,7 +399,7 @@ export default function Home() {
         matches={quizMatches}
         onStartSwiping={() => setView('swipe')}
         onRetakeQuiz={() => setView('quiz')}
-        onSelectPet={(pet) => setDetailPet(pet)}
+        onSelectPet={(pet) => handleSelectPet(pet)}
       />
     );
   }
@@ -387,7 +416,7 @@ export default function Home() {
         favorites={favorites}
         onRemove={handleRemoveFavorite}
         onBack={() => setView('swipe')}
-        onSelect={(pet) => setDetailPet(pet)}
+        onSelect={(pet) => handleSelectPet(pet)}
         onCompare={(pets) => { setComparePets(pets); setView('swipe'); }}
         quizAnswers={quizAnswers}
         quizDone={quizDone}
@@ -499,7 +528,7 @@ export default function Home() {
       <DailyStreak streak={streak} />
 
       {/* Pet of the Day */}
-      <PetOfTheDay onSelect={(pet) => setDetailPet(pet)} />
+      <PetOfTheDay onSelect={(pet) => handleSelectPet(pet)} />
 
       {/* Adoption tip */}
       <AdoptionTips />
@@ -628,7 +657,7 @@ export default function Home() {
                 pet={filteredPets[0]}
                 onSwipeLeft={handleSwipeLeft}
                 onSwipeRight={handleSwipeRight}
-                onInfo={() => setDetailPet(filteredPets[0])}
+                onInfo={() => filteredPets[0] && handleSelectPet(filteredPets[0])}
                 onTakeQuiz={() => setView('quiz')}
                 isTop={true}
                 quizAnswers={quizAnswers}
@@ -708,7 +737,7 @@ export default function Home() {
         <TrophyCase
           unlockedIds={unlockedIds}
           onClose={() => setShowTrophyCase(false)}
-          onShowWrapped={() => setShowWrapped(true)}
+          onShowWrapped={() => { setShowWrapped(true); trackEvent('wrapped_viewed'); }}
         />
       )}
 
@@ -741,7 +770,7 @@ export default function Home() {
       <KeyboardHints
         onLeft={handleSwipeLeft}
         onRight={handleSwipeRight}
-        onInfo={() => filteredPets[0] && setDetailPet(filteredPets[0])}
+        onInfo={() => filteredPets[0] && handleSelectPet(filteredPets[0])}
         onUndo={handleUndo}
         enabled={view === 'swipe' && filteredPets.length > 0 && !detailPet}
       />
