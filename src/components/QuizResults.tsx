@@ -35,8 +35,8 @@ export default function QuizResults({ matches, resultType, onStartSwiping, onRet
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sage-100">
             <Sparkles className="h-8 w-8 text-sage-500" />
           </div>
-          <h1 className="mt-4 text-3xl font-bold text-gray-900">Your Top Matches!</h1>
-          <p className="mt-2 text-gray-500">Based on your lifestyle, here are your perfect companions</p>
+          <h1 className="mt-4 text-3xl font-bold text-gray-900">Your Top Matches</h1>
+          <p className="mt-2 text-gray-500">Based on your answers, these pets are your best fit — go say hi!</p>
         </div>
 
         {/* Matches */}
@@ -96,13 +96,13 @@ export default function QuizResults({ matches, resultType, onStartSwiping, onRet
               className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3 text-sm font-medium text-gray-500 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50"
             >
               <RotateCcw className="h-4 w-4" />
-              Retake
+              Retake Quiz
             </button>
           </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          These are suggestions based on your answers. You can still browse all pets!
+          Not feeling these? Swipe through all pets — your perfect match might surprise you.
         </p>
       </div>
     </div>

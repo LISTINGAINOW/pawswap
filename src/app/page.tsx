@@ -665,6 +665,8 @@ export default function Home() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/stories" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Stories</Link>
+          <span className="text-[11px] text-gray-200">·</span>
           <Link href="/about" className="text-[11px] text-gray-300 hover:text-gray-500 transition">About</Link>
           <span className="text-[11px] text-gray-200">·</span>
           <Link href="/privacy" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Privacy</Link>
