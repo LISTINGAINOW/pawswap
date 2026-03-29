@@ -10,6 +10,9 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
+  other: {
+    'impact-site-verification': '83e48a77-c5ab-47c9-9417-9970f50e7ff7',
+  },
   title: 'Pupular — Swipe to Adopt Pets Near You',
   description: 'Swipe to adopt pets near you. Browse real dogs & cats from local shelters, take a personality quiz, and connect with rescues. Free on iOS.',
   manifest: '/manifest.json',
