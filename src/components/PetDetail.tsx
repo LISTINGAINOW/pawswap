@@ -4,6 +4,8 @@ import { X, Heart, MapPin, Phone, Mail, Clock, ExternalLink, ChevronLeft, Chevro
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import type { Pet } from '@/data/pets';
+import ShelterConnect from './ShelterConnect';
+import PetWingman from './PetWingman';
 
 interface Props {
   pet: Pet;
@@ -306,8 +308,11 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
             </address>
           </div>
 
+          {/* Shelter Connect */}
+          <ShelterConnect pet={pet} />
+
           {/* Action buttons */}
-          <div className="mt-6 flex gap-3 pb-2">
+          <div className="mt-5 flex gap-3">
             <button
               type="button"
               onClick={onFavorite}
@@ -332,6 +337,11 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
               <ExternalLink className="h-5 w-5" aria-hidden="true" />
               Apply to Adopt
             </a>
+          </div>
+
+          {/* Pet Wingman */}
+          <div className="mt-3 pb-2">
+            <PetWingman pet={pet} variant="detail" />
           </div>
         </div>
       </div>

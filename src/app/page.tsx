@@ -41,8 +41,12 @@ const BackToTop = dynamic(() => import('@/components/BackToTop'), { ssr: false }
 const WelcomeBack = dynamic(() => import('@/components/WelcomeBack'), { ssr: false });
 const WeeklyDigestPrompt = dynamic(() => import('@/components/WeeklyDigestPrompt'), { ssr: false });
 const PupularWrapped = dynamic(() => import('@/components/PupularWrapped'), { ssr: false });
+const DailyMatches = dynamic(() => import('@/components/DailyMatches'), { ssr: false });
+const AdoptionJourney = dynamic(() => import('@/components/AdoptionJourney'), { ssr: false });
+const FoundMyMatch = dynamic(() => import('@/components/FoundMyMatch'), { ssr: false });
+const SmartNudge = dynamic(() => import('@/components/SmartNudge'), { ssr: false });
 
-type View = 'onboarding' | 'location' | 'quiz' | 'quiz-celebration' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
+type View = 'onboarding' | 'location' | 'quiz' | 'quiz-celebration' | 'quiz-results' | 'swipe' | 'favorites' | 'filters' | 'journey';
 type AnimalFilter = 'all' | 'dog' | 'cat';
 type SizeFilter = 'all' | 'Small' | 'Medium' | 'Large' | 'Extra Large';
 type AgeFilter = 'all' | 'baby' | 'young' | 'adult' | 'senior';
@@ -91,6 +95,11 @@ export default function Home() {
   const { streak, recordView } = useStreak();
   const lastSwipeRef = useRef<number>(0);
   const firstPetShownRef = useRef(false);
+
+  // New addiction loop states
+  const [showDailyMatches, setShowDailyMatches] = useState(false);
+  const [foundMyMatchPet, setFoundMyMatchPet] = useState<Pet | null>(null);
+  const [detailViewCount, setDetailViewCount] = useState(0);
 
   // Onboarding delight states
   const [sessionSwipeCount, setSessionSwipeCount] = useState(0);
@@ -398,6 +407,7 @@ export default function Home() {
 
   const handleSelectPet = (pet: Pet) => {
     setDetailPet(pet);
+    setDetailViewCount(n => n + 1);
     trackEvent('pet_detail_opened', { petId: pet.id, petName: pet.name, breed: pet.breed });
   };
 
@@ -495,6 +505,20 @@ export default function Home() {
     );
   }
 
+  // Adoption Journey
+  if (view === 'journey') {
+    return (
+      <AdoptionJourney
+        onBack={() => setView('swipe')}
+        onAdopt={(pet) => {
+          setFoundMyMatchPet(pet ?? favorites[0] ?? null);
+          setView('swipe');
+        }}
+        favorites={favorites}
+      />
+    );
+  }
+
   // Filters
   if (view === 'filters') {
     return (
@@ -570,6 +594,22 @@ export default function Home() {
               🧠
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => { setShowDailyMatches(s => !s); hapticLight(); }}
+            aria-label="Daily matches"
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${showDailyMatches ? (darkMode ? 'bg-amber-700' : 'bg-amber-100') : (darkMode ? 'bg-gray-800' : 'bg-white')}`}
+          >
+            ✨
+          </button>
+          <button
+            type="button"
+            onClick={() => { setView('journey'); hapticLight(); }}
+            aria-label="Adoption journey"
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+          >
+            🗺️
+          </button>
         </div>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-sage-700">🐾 Pupular</h1>
@@ -607,6 +647,18 @@ export default function Home() {
 
       {/* Daily streak (#10) */}
       <DailyStreak streak={streak} />
+
+      {/* Daily Matches */}
+      {showDailyMatches && (
+        <DailyMatches
+          pets={filteredPets.length > 0 ? filteredPets : allPets}
+          quizAnswers={quizAnswers}
+          quizDone={quizDone}
+          onSelectPet={(pet) => handleSelectPet(pet)}
+          onClose={() => setShowDailyMatches(false)}
+          onTakeQuiz={() => setView('quiz')}
+        />
+      )}
 
       {/* Pet of the Day */}
       <PetOfTheDay onSelect={(pet) => handleSelectPet(pet)} />
@@ -843,6 +895,21 @@ export default function Home() {
         onTakeQuiz={() => { setShowQuizPrompt(false); setView('quiz'); }}
         onDismiss={() => setShowQuizPrompt(false)}
       />
+
+      {/* Smart nudges */}
+      <SmartNudge
+        totalSwiped={totalSwiped}
+        favoritesCount={favorites.length}
+        detailViewCount={detailViewCount}
+      />
+
+      {/* Found My Match celebration */}
+      {foundMyMatchPet && (
+        <FoundMyMatch
+          pet={foundMyMatchPet}
+          onClose={() => setFoundMyMatchPet(null)}
+        />
+      )}
 
       {/* Confetti on match (#3) */}
       <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />

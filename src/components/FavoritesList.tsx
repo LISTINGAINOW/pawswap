@@ -55,6 +55,15 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
   const [activeTab, setActiveTab] = useState<'pets' | 'shelters'>('pets');
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [wingmanVotes, setWingmanVotes] = useState<Record<string, string>>({});
+
+  // Load wingman votes from localStorage
+  useEffect(() => {
+    try {
+      const votes = localStorage.getItem('pupular-wingman-votes');
+      if (votes) setWingmanVotes(JSON.parse(votes));
+    } catch { /* ignore */ }
+  }, []);
 
   // Persist sort preference
   useEffect(() => {
@@ -352,6 +361,16 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                           {pet.adoptionFee && (
                             <span className="mt-1.5 inline-block rounded-full bg-sage-50 px-2 py-0.5 text-xs font-medium text-sage-600">
                               Fee: {pet.adoptionFee}
+                            </span>
+                          )}
+                          {wingmanVotes[pet.id] === 'yes' && (
+                            <span className="mt-1 block text-xs font-semibold text-green-600">
+                              👥 A friend says YES!
+                            </span>
+                          )}
+                          {wingmanVotes[pet.id] === 'no' && (
+                            <span className="mt-1 block text-xs text-gray-400">
+                              👥 Friend voted: maybe not
                             </span>
                           )}
                         </div>
