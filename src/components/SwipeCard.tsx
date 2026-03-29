@@ -2,20 +2,26 @@
 
 import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { Heart, X, MapPin, Info, Share2 } from 'lucide-react';
+import { Heart, X, MapPin, Info, Share2, Sparkles } from 'lucide-react';
 import { hapticMedium, hapticSuccess } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
+import type { Answer } from '@/lib/compatibility';
+import { getCompatibilityPct } from '@/lib/compatibility';
 
 interface Props {
   pet: Pet;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
   onInfo: () => void;
+  onTakeQuiz?: () => void;
   isTop: boolean;
+  quizAnswers?: Answer[];
+  quizDone?: boolean;
 }
 
-export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTop }: Props) {
+export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTakeQuiz, isTop, quizAnswers = [], quizDone = false }: Props) {
+  const compatPct = quizDone && quizAnswers.length > 0 ? getCompatibilityPct(pet, quizAnswers) : null;
   const [exitX, setExitX] = useState(0);
   const [showOverlay, setShowOverlay] = useState<'like' | 'nope' | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -177,6 +183,34 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, isTo
             <MapPin className="h-3 w-3" aria-hidden="true" />
             {pet.distance}
           </div>
+
+          {/* Compatibility badge */}
+          {isTop && (
+            compatPct !== null ? (
+              <div
+                className={`absolute left-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold backdrop-blur-md ${
+                  compatPct >= 80
+                    ? 'bg-green-500/90 text-white'
+                    : compatPct >= 50
+                    ? 'bg-yellow-400/90 text-gray-900'
+                    : 'bg-red-400/90 text-white'
+                }`}
+                aria-label={`${compatPct}% compatibility match`}
+              >
+                <Sparkles className="h-3 w-3" aria-hidden="true" />
+                {compatPct}% Match
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onTakeQuiz?.(); }}
+                className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-1 text-xs font-semibold text-sage-700 backdrop-blur-md hover:bg-white/95"
+              >
+                <Sparkles className="h-3 w-3" aria-hidden="true" />
+                Match %
+              </button>
+            )
+          )}
 
           {/* Name + age overlay on photo */}
           <div className="absolute bottom-4 left-5 right-5">

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2 } from 'lucide-react';
+import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import LocationPrompt from '@/components/LocationPrompt';
@@ -10,6 +10,8 @@ import { Pet, mockPets } from '@/data/pets';
 import { useStreak } from '@/components/DailyStreak';
 import { useAchievements, AchievementBadge, TrophyCase, UserStats } from '@/components/Achievements';
 import { hapticLight } from '@/lib/haptics';
+import { safeGet, safeSet, safeSetJSON, safeGetJSON, pruneStorageIfNeeded } from '@/utils/storage';
+import type { Answer } from '@/lib/compatibility';
 
 // Lazy load heavy components
 const SwipeCard = dynamic(() => import('@/components/SwipeCard'), { ssr: false });
@@ -55,6 +57,8 @@ export default function Home() {
   const [allPets, setAllPets] = useState<Pet[]>(mockPets);
   const [dataSource, setDataSource] = useState<'live' | 'mock'>('mock');
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
 
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [favorites, setFavorites] = useState<Pet[]>([]);
@@ -67,6 +71,7 @@ export default function Home() {
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [quizMatches, setQuizMatches] = useState<Pet[]>([]);
+  const [quizAnswers, setQuizAnswers] = useState<Answer[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [comparePets, setComparePets] = useState<[Pet, Pet] | null>(null);
@@ -94,55 +99,46 @@ export default function Home() {
   // Mount check + restore from localStorage
   useEffect(() => {
     setMounted(true);
-    if (localStorage.getItem('pupular-onboarded')) {
-      setView('location');
+    pruneStorageIfNeeded();
+
+    if (safeGet('pupular-onboarded')) setView('location');
+
+    const savedFavs = safeGetJSON<Pet[]>('pupular-favorites');
+    if (savedFavs) setFavorites(savedFavs);
+
+    const savedLoc = safeGetJSON<UserLocation>('pupular-location');
+    if (savedLoc) {
+      setLocation(savedLoc);
+      if (safeGet('pupular-onboarded')) setView('swipe');
     }
-    // Restore favorites
-    try {
-      const saved = localStorage.getItem('pupular-favorites');
-      if (saved) setFavorites(JSON.parse(saved));
-    } catch { /* ignore */ }
-    // Restore location
-    try {
-      const savedLoc = localStorage.getItem('pupular-location');
-      if (savedLoc) {
-        const loc = JSON.parse(savedLoc);
-        setLocation(loc);
-        if (localStorage.getItem('pupular-onboarded')) {
-          setView('swipe');
-        }
-      }
-    } catch { /* ignore */ }
-    // Restore swipe progress (#5)
-    try {
-      const savedPassed = localStorage.getItem('pupular-passed');
-      if (savedPassed) setPassed(JSON.parse(savedPassed));
-    } catch { /* ignore */ }
-    // Restore dark mode (#6)
-    try {
-      const savedDark = localStorage.getItem('pupular-dark');
-      if (savedDark === 'true') setDarkMode(true);
-    } catch { /* ignore */ }
-    // Restore stats
-    try {
-      const savedSwiped = localStorage.getItem('pupular-total-swiped');
-      if (savedSwiped) setTotalSwiped(parseInt(savedSwiped));
-      const savedShares = localStorage.getItem('pupular-share-count');
-      if (savedShares) setShareCount(parseInt(savedShares));
-      if (localStorage.getItem('pupular-quiz-done')) setQuizDone(true);
-    } catch { /* ignore */ }
-    // Restore filters
-    try {
-      const savedFilters = localStorage.getItem('pupular-filters');
-      if (savedFilters) {
-        const f = JSON.parse(savedFilters);
-        if (f.animalFilter) setAnimalFilter(f.animalFilter);
-        if (f.sizeFilter) setSizeFilter(f.sizeFilter);
-        if (f.breedFilter) setBreedFilter(f.breedFilter);
-        if (f.ageFilter) setAgeFilter(f.ageFilter);
-        if (f.genderFilter) setGenderFilter(f.genderFilter);
-      }
-    } catch { /* ignore */ }
+
+    const savedPassed = safeGetJSON<string[]>('pupular-passed');
+    if (savedPassed) setPassed(savedPassed);
+
+    if (safeGet('pupular-dark') === 'true') setDarkMode(true);
+
+    const savedSwiped = safeGet('pupular-total-swiped');
+    if (savedSwiped) setTotalSwiped(parseInt(savedSwiped));
+    const savedShares = safeGet('pupular-share-count');
+    if (savedShares) setShareCount(parseInt(savedShares));
+    if (safeGet('pupular-quiz-done')) setQuizDone(true);
+    const savedAnswers = safeGetJSON<Answer[]>('pupular-quiz-answers');
+    if (savedAnswers) setQuizAnswers(savedAnswers);
+
+    const savedFilters = safeGetJSON<{
+      animalFilter?: AnimalFilter;
+      sizeFilter?: SizeFilter;
+      breedFilter?: string;
+      ageFilter?: AgeFilter;
+      genderFilter?: GenderFilter;
+    }>('pupular-filters');
+    if (savedFilters) {
+      if (savedFilters.animalFilter) setAnimalFilter(savedFilters.animalFilter);
+      if (savedFilters.sizeFilter) setSizeFilter(savedFilters.sizeFilter);
+      if (savedFilters.breedFilter) setBreedFilter(savedFilters.breedFilter);
+      if (savedFilters.ageFilter) setAgeFilter(savedFilters.ageFilter);
+      if (savedFilters.genderFilter) setGenderFilter(savedFilters.genderFilter);
+    }
   }, []);
 
   // Scroll to top on view change
@@ -152,50 +148,74 @@ export default function Home() {
 
   // Persist favorites
   useEffect(() => {
-    if (mounted) localStorage.setItem('pupular-favorites', JSON.stringify(favorites));
+    if (mounted) safeSetJSON('pupular-favorites', favorites);
   }, [favorites, mounted]);
 
-  // Persist swipe progress (#5)
+  // Persist swipe progress
   useEffect(() => {
-    if (mounted) localStorage.setItem('pupular-passed', JSON.stringify(passed));
+    if (mounted) safeSetJSON('pupular-passed', passed);
   }, [passed, mounted]);
 
-  // Persist dark mode (#6)
+  // Persist dark mode
   useEffect(() => {
-    if (mounted) localStorage.setItem('pupular-dark', String(darkMode));
+    if (mounted) safeSet('pupular-dark', String(darkMode));
     if (darkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [darkMode, mounted]);
 
   // Persist stats
   useEffect(() => {
-    if (mounted) localStorage.setItem('pupular-total-swiped', String(totalSwiped));
+    if (mounted) safeSet('pupular-total-swiped', String(totalSwiped));
   }, [totalSwiped, mounted]);
   useEffect(() => {
-    if (mounted) localStorage.setItem('pupular-share-count', String(shareCount));
+    if (mounted) safeSet('pupular-share-count', String(shareCount));
   }, [shareCount, mounted]);
 
-  // Fetch pets from API when location changes
+  // Fetch pets with exponential backoff (1s → 2s → 4s, max 3 retries)
   const fetchPets = useCallback(async (loc: UserLocation) => {
     setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (loc.zipCode) params.set('zip', loc.zipCode);
-      params.set('limit', '40');
-      params.set('page', '1');
+    setApiError(false);
+    setOfflineMode(false);
 
-      const res = await fetch(`/api/pets?${params}`);
-      if (!res.ok) throw new Error('API error');
+    const retryDelays = [1000, 2000, 4000];
 
-      const data = await res.json();
-      setAllPets(data.pets?.length > 0 ? data.pets : mockPets);
-      setDataSource(data.source || 'mock');
-    } catch {
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+      if (attempt > 0) {
+        await new Promise<void>((resolve) => setTimeout(resolve, retryDelays[attempt - 1]));
+      }
+      try {
+        const params = new URLSearchParams();
+        if (loc.zipCode) params.set('zip', loc.zipCode);
+        params.set('limit', '40');
+        params.set('page', '1');
+
+        const res = await fetch(`/api/pets?${params}`);
+        if (!res.ok) throw new Error(`API ${res.status}`);
+
+        const data = await res.json();
+        const pets: Pet[] = data.pets?.length > 0 ? data.pets : mockPets;
+        setAllPets(pets);
+        setDataSource(data.source || 'mock');
+        safeSetJSON('pupular-cached-pets', pets.slice(0, 20));
+        setLoading(false);
+        return;
+      } catch {
+        // continue retrying
+      }
+    }
+
+    // All retries exhausted — try offline cache first
+    const cached = safeGetJSON<Pet[]>('pupular-cached-pets');
+    if (cached && cached.length > 0) {
+      setAllPets(cached);
+      setDataSource('mock');
+      setOfflineMode(true);
+    } else {
       setAllPets(mockPets);
       setDataSource('mock');
-    } finally {
-      setLoading(false);
+      setApiError(true);
     }
+    setLoading(false);
   }, []);
 
   // Age matching helper
@@ -286,7 +306,7 @@ export default function Home() {
 
   const handleLocationSet = (loc: UserLocation) => {
     setLocation(loc);
-    localStorage.setItem('pupular-location', JSON.stringify(loc));
+    safeSetJSON('pupular-location', loc);
     fetchPets(loc);
     setView('quiz');
   };
@@ -308,7 +328,7 @@ export default function Home() {
     return (
       <OnboardingSlides
         onComplete={() => {
-          localStorage.setItem('pupular-onboarded', 'true');
+          safeSet('pupular-onboarded', 'true');
           setView('location');
         }}
       />
@@ -319,10 +339,12 @@ export default function Home() {
   if (view === 'quiz') {
     return (
       <PetQuiz
-        onComplete={(matches) => {
+        onComplete={(matches, answers) => {
           setQuizMatches(matches);
+          setQuizAnswers(answers);
           setQuizDone(true);
-          localStorage.setItem('pupular-quiz-done', 'true');
+          safeSet('pupular-quiz-done', 'true');
+          safeSetJSON('pupular-quiz-answers', answers);
           setView('quiz-results');
         }}
         onSkip={() => setView('swipe')}
@@ -356,6 +378,8 @@ export default function Home() {
         onBack={() => setView('swipe')}
         onSelect={(pet) => setDetailPet(pet)}
         onCompare={(pets) => { setComparePets(pets); setView('swipe'); }}
+        quizAnswers={quizAnswers}
+        quizDone={quizDone}
       />
     );
   }
@@ -574,7 +598,10 @@ export default function Home() {
                 onSwipeLeft={handleSwipeLeft}
                 onSwipeRight={handleSwipeRight}
                 onInfo={() => setDetailPet(filteredPets[0])}
+                onTakeQuiz={() => setView('quiz')}
                 isTop={true}
+                quizAnswers={quizAnswers}
+                quizDone={quizDone}
               />
             </>
           )}
