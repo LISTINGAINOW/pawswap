@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Sparkles } from 'lucide-react';
 import { hapticLight, hapticSuccess } from '@/lib/haptics';
+import { trackEvent } from '@/lib/analytics';
 
 interface Props {
   totalSwiped: number;
@@ -43,6 +44,7 @@ export default function WeeklyDigestPrompt({ totalSwiped }: Props) {
       localStorage.setItem(STORAGE_KEY, 'subscribed');
       localStorage.setItem('pupular-digest-email', email.trim());
     } catch { /* ignore */ }
+    trackEvent('digest_signup', { totalSwiped });
     setSubmitted(true);
     setTimeout(() => setVisible(false), 2500);
   };
