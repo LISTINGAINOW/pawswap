@@ -502,7 +502,27 @@ export default function Home() {
               <h2 className="mt-4 text-xl font-bold text-gray-700">Finding pets near you...</h2>
               <p className="mt-2 text-sm text-gray-400">Searching shelters in your area</p>
             </div>
-          ) : filteredPets.length === 0 ? (
+          ) : apiError ? (
+            <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
+              <div className="text-6xl">😿</div>
+              <h2 className="mt-4 text-2xl font-bold text-gray-800">Couldn't reach the shelter network</h2>
+              <p className="mt-2 text-gray-500">Check your connection and try again.</p>
+              <button
+                type="button"
+                onClick={() => location && fetchPets(location)}
+                className="mt-6 flex items-center gap-2 rounded-2xl bg-sage-500 px-6 py-3 font-semibold text-white hover:bg-sage-600"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Try Again
+              </button>
+            </div>
+          ) : offlineMode ? (
+            <div className="absolute -top-8 left-0 right-0 flex items-center justify-center gap-2 rounded-2xl bg-amber-50 px-4 py-2 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+              <WifiOff className="h-3.5 w-3.5" />
+              Offline — showing cached pets
+            </div>
+          ) : null}
+          {!loading && !apiError && filteredPets.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               {/* Differentiate: filters active vs all swiped */}
               {(animalFilter !== 'all' || sizeFilter !== 'all' || breedFilter !== 'all' || ageFilter !== 'all' || genderFilter !== 'all') ? (
