@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import OnboardingSlides from '@/components/OnboardingSlides';
 import LocationPrompt from '@/components/LocationPrompt';
 import { Pet, mockPets } from '@/data/pets';
@@ -589,20 +590,29 @@ export default function Home() {
       <SwipeStats totalSwiped={totalSwiped} favorites={favorites.length} currentPet={filteredPets[0] || null} />
 
       {/* Bottom bar */}
-      <footer className="flex items-center justify-center gap-6 px-5 pb-6 pt-2">
-        {passed.length > 0 && (
-          <button
-            type="button"
-            onClick={handleUndo}
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Undo
-          </button>
-        )}
-        <p className="text-sm text-gray-400">
-          {filteredPets.length} {filteredPets.length === 1 ? 'pet' : 'pets'} nearby
-        </p>
+      <footer className="flex flex-col items-center gap-1 px-5 pb-4 pt-1">
+        <div className="flex items-center justify-center gap-6">
+          {passed.length > 0 && (
+            <button
+              type="button"
+              onClick={handleUndo}
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Undo
+            </button>
+          )}
+          <p className="text-sm text-gray-400">
+            {filteredPets.length} {filteredPets.length === 1 ? 'pet' : 'pets'} nearby
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/about" className="text-[11px] text-gray-300 hover:text-gray-500 transition">About</Link>
+          <span className="text-[11px] text-gray-200">·</span>
+          <Link href="/privacy" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Privacy</Link>
+          <span className="text-[11px] text-gray-200">·</span>
+          <Link href="/terms" className="text-[11px] text-gray-300 hover:text-gray-500 transition">Terms</Link>
+        </div>
       </footer>
 
       {/* Detail modal */}

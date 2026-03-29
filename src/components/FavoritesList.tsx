@@ -216,9 +216,10 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                       e.stopPropagation();
                       onRemove(pet.id);
                     }}
+                    aria-label={`Remove ${pet.name} from favorites`}
                     className="self-start p-3 text-gray-300 transition hover:text-red-400"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
               </div>

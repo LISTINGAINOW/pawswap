@@ -9,7 +9,14 @@ interface Props {
   onReaction?: (emoji: string) => void;
 }
 
-const REACTIONS = ['😍', '🥺', '😂', '🤩', '💀', '🥰'];
+const REACTIONS: { emoji: string; label: string }[] = [
+  { emoji: '😍', label: 'Love it' },
+  { emoji: '🥺', label: 'So cute' },
+  { emoji: '😂', label: 'Funny' },
+  { emoji: '🤩', label: 'Amazing' },
+  { emoji: '💀', label: 'Dead from cuteness' },
+  { emoji: '🥰', label: 'Adorable' },
+];
 
 export default function QuickReactions({ petName, onReaction }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -25,12 +32,13 @@ export default function QuickReactions({ petName, onReaction }: Props) {
   };
 
   return (
-    <div className="relative flex items-center justify-center gap-2 py-1">
-      {REACTIONS.map((emoji) => (
+    <div className="relative flex items-center justify-center gap-2 py-1" role="group" aria-label={`React to ${petName}`}>
+      {REACTIONS.map(({ emoji, label }) => (
         <button
           key={emoji}
           type="button"
           onClick={() => handleReaction(emoji)}
+          aria-label={`${label} — react to ${petName}`}
           className={`rounded-full p-1.5 text-lg transition-all active:scale-125 ${
             selected === emoji ? 'scale-125 bg-sage-100' : 'hover:scale-110'
           }`}
