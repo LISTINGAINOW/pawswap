@@ -2,10 +2,32 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Heart } from 'lucide-react';
 import type { Metadata } from 'next';
+import StoriesViewTracker from './StoriesViewTracker';
 
 export const metadata: Metadata = {
   title: 'Adoption Stories | Pupular',
   description: 'Real stories from real adopters. Meet the pets who found their forever homes through Pupular.',
+  openGraph: {
+    title: 'Adoption Stories | Pupular',
+    description: 'Real stories from real adopters. Meet Max, Luna, Bear, and more — pets who found their forever homes.',
+    url: 'https://www.pupular.app/stories',
+    siteName: 'Pupular',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1503256207526-0d5523f31580?w=1200&h=630&fit=crop',
+        width: 1200,
+        height: 630,
+        alt: 'Max the Border Collie Mix — one of Pupular\'s adoption success stories',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Adoption Stories | Pupular',
+    description: 'Real stories from real adopters. Meet the pets who found their forever homes through Pupular.',
+    images: ['https://images.unsplash.com/photo-1503256207526-0d5523f31580?w=1200&h=630&fit=crop'],
+  },
 };
 
 const stories = [
@@ -92,6 +114,7 @@ const stories = [
 export default function StoriesPage() {
   return (
     <div className="min-h-screen bg-sage-50 px-4 py-8">
+      <StoriesViewTracker />
       <div className="mx-auto max-w-2xl">
         <Link
           href="/about"
