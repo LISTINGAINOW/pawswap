@@ -1,15 +1,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows, BookOpen, ArrowUpDown } from 'lucide-react';
+import { X, MapPin, Phone, ArrowLeft, Navigation, Share2, GitCompareArrows, BookOpen, ArrowUpDown, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { hapticLight } from '@/lib/haptics';
+import { hapticLight, hapticSuccess } from '@/lib/haptics';
 import Image from 'next/image';
 import type { Pet } from '@/data/pets';
 import type { Answer } from '@/lib/compatibility';
 import { getCompatibilityPct } from '@/lib/compatibility';
+import { trackEvent } from '@/lib/analytics';
 import ShelterMap from './ShelterMap';
 import YourType from './YourType';
+
+/** Generate or retrieve a persistent referral code for this user. */
+function getOrCreateRefCode(): string {
+  try {
+    const existing = localStorage.getItem('pupular-ref-code');
+    if (existing) return existing;
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 7; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    localStorage.setItem('pupular-ref-code', code);
+    return code;
+  } catch {
+    return 'pupular';
+  }
+}
 
 type SortOption = 'date' | 'compatibility' | 'distance' | 'name';
 
@@ -28,9 +44,11 @@ interface Props {
   onCompare?: (pets: [Pet, Pet]) => void;
   quizAnswers?: Answer[];
   quizDone?: boolean;
+  totalFavorited?: number;
+  storiesViewed?: boolean;
 }
 
-export default function FavoritesList({ favorites, onRemove, onBack, onSelect, onCompare, quizAnswers = [], quizDone = false }: Props) {
+export default function FavoritesList({ favorites, onRemove, onBack, onSelect, onCompare, quizAnswers = [], quizDone = false, totalFavorited = 0, storiesViewed = false }: Props) {
   const [compareMode, setCompareMode] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const [compareSelection, setCompareSelection] = useState<string[]>([]);
@@ -87,12 +105,25 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
 
   const handleShareAll = async () => {
     hapticLight();
+    trackEvent('share_favorites', { count: favorites.length });
     const petList = favorites
       .map(p => `• ${p.name} ${p.type === 'dog' ? '🐕' : '🐈'} — ${p.age} ${p.breed} @ ${p.shelter}`)
       .join('\n');
     const text = `🐾 I found ${favorites.length} amazing pets on Pupular looking for homes!\n\n${petList}\n\nFind your match: https://www.pupular.app`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: 'My Pupular Favorites', text, url: 'https://www.pupular.app' }); } catch { /* cancelled */ }
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
+  };
+
+  const handleInvite = async () => {
+    hapticSuccess();
+    const refCode = getOrCreateRefCode();
+    const text = `I have saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'} on Pupular. Help them find homes. Join me: pupular.app/?ref=${refCode}`;
+    trackEvent('referral_sent', { refCode, favoriteCount: favorites.length });
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: 'Join me on Pupular 🐾', text, url: `https://www.pupular.app/?ref=${refCode}` }); } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       await navigator.clipboard.writeText(text);
     }
@@ -142,6 +173,15 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                 <Share2 className="h-4 w-4" />
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleInvite}
+              className="flex h-8 items-center gap-1 rounded-full bg-sage-100 px-3 text-xs font-medium text-sage-600 hover:bg-sage-200 transition"
+              aria-label="Invite a friend"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Invite
+            </button>
           </div>
         </div>
 
@@ -199,6 +239,7 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
           <div className="space-y-4">
             {/* Sort bar */}
             <div className="relative flex items-center justify-between">
+
               <p className="text-xs text-gray-400">
                 Sorted by <span className="font-semibold text-sage-600">{SORT_LABELS[sortBy]}</span>
                 {sortBy === 'compatibility' && !quizDone && (
@@ -239,6 +280,31 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Milestones panel */}
+            {(() => {
+              const milestones = [
+                { id: 'quiz', done: quizDone, icon: '🧠', label: 'Completed Quiz' },
+                { id: 'five-saves', done: totalFavorited >= 5, icon: '❤️', label: 'Saved 5 Pets' },
+                { id: 'stories', done: storiesViewed, icon: '📖', label: 'Viewed Adoption Stories' },
+              ];
+              const achievedMilestones = milestones.filter((m) => m.done);
+              if (achievedMilestones.length === 0) return null;
+              return (
+                <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Your milestones">
+                  {achievedMilestones.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex shrink-0 items-center gap-1.5 rounded-full bg-sage-100 px-3 py-1.5 text-xs font-medium text-sage-700"
+                    >
+                      <span className="text-green-600 font-bold">✓</span>
+                      <span>{m.icon}</span>
+                      <span>{m.label}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Pet cards */}
             <AnimatePresence mode="popLayout">
