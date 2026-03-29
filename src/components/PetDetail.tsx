@@ -14,6 +14,7 @@ interface Props {
 
 export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [imgError, setImgError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -60,10 +61,11 @@ export default function PetDetail({ pet, onClose, onFavorite, isFavorited }: Pro
         {/* Photo carousel */}
         <div className="relative h-80 w-full sm:h-96">
           <Image
-            src={pet.photos[photoIndex] || pet.photo}
+            src={imgError ? '/placeholder-pet.png' : (pet.photos[photoIndex] || pet.photo)}
             alt={`${pet.name}, photo ${photoIndex + 1} of ${pet.photos.length}`}
             fill
             className="rounded-t-3xl object-cover"
+            onError={() => setImgError(true)}
           />
           <button
             ref={closeBtnRef}

@@ -13,6 +13,7 @@ export default function PetOfTheDay({ onSelect }: Props) {
   const [pet, setPet] = useState<Pet | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [sparkle, setSparkle] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -71,7 +72,7 @@ export default function PetOfTheDay({ onSelect }: Props) {
         >
           {/* Photo */}
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-2 ring-amber-300 shadow-sm">
-            <Image src={pet.photo} alt={pet.name} fill className="object-cover" />
+            <Image src={imgError ? '/placeholder-pet.png' : pet.photo} alt={pet.name} fill className="object-cover" onError={() => setImgError(true)} />
             <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-amber-600/40 to-transparent pb-0.5">
               <span className="text-[16px]">⭐</span>
             </div>

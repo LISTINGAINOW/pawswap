@@ -18,6 +18,7 @@ interface Props {
 
 export default function FavoritesList({ favorites, onRemove, onBack, onSelect, onCompare }: Props) {
   const [compareMode, setCompareMode] = useState(false);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const [compareSelection, setCompareSelection] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'pets' | 'shelters'>('pets');
 
@@ -151,10 +152,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
                 <div className="flex cursor-pointer" onClick={() => compareMode ? toggleCompareSelect(pet.id) : onSelect(pet)}>
                   <div className="relative h-36 w-36 shrink-0">
                     <Image
-                      src={pet.photo}
+                      src={imgErrors[pet.id] ? '/placeholder-pet.png' : pet.photo}
                       alt={pet.name}
                       fill
                       className="object-cover"
+                      onError={() => setImgErrors(prev => ({ ...prev, [pet.id]: true }))}
                     />
                     {/* Type indicator */}
                     <div className="absolute bottom-2 left-2 rounded-full bg-black/40 px-2 py-0.5 text-xs text-white backdrop-blur-sm">

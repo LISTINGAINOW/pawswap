@@ -19,6 +19,7 @@ export default function SuperLikeModal({ pet, onClose, onSend }: Props) {
     `Hi! I found ${pet.name} on Pupular and I'm very interested in adopting. I'd love to schedule a visit to meet ${pet.gender === 'Male' ? 'him' : 'her'}. When would be a good time?`
   );
   const [sent, setSent] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +56,7 @@ export default function SuperLikeModal({ pet, onClose, onSend }: Props) {
         {/* Header with pet preview */}
         <div className="relative flex items-center gap-4 border-b border-gray-100 p-5">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
-            <Image src={pet.photo} alt={pet.name} fill className="object-cover" />
+            <Image src={imgError ? '/placeholder-pet.png' : pet.photo} alt={pet.name} fill className="object-cover" onError={() => setImgError(true)} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">

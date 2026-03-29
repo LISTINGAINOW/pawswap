@@ -25,6 +25,7 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
   const [exitX, setExitX] = useState(0);
   const [showOverlay, setShowOverlay] = useState<'like' | 'nope' | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [imgError, setImgError] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 0, 300], [-25, 0, 25]);
   const likeOpacity = useTransform(x, [0, 100], [0, 1]);
@@ -107,13 +108,14 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
         {/* Photo */}
         <div className="relative min-h-0 flex-1 w-full">
           <Image
-            src={pet.photos[photoIndex] || pet.photo}
+            src={imgError ? '/placeholder-pet.png' : (pet.photos[photoIndex] || pet.photo)}
             alt={`${pet.name} — ${pet.breed}`}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 400px"
             priority={isTop}
             loading={isTop ? 'eager' : 'lazy'}
+            onError={() => setImgError(true)}
           />
 
           {/* Photo navigation dots */}
