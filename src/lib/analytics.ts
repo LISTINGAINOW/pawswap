@@ -47,7 +47,13 @@ export type EventName =
   | 'share_favorites'
   | 'share_pet'
   | 'referral_sent'
-  | 'referral_received';
+  | 'referral_received'
+  | 'inquiry_sent'
+  | 'wingman_shared'
+  | 'journey_step_complete'
+  | 'found_my_match'
+  | 'smart_nudge_shown'
+  | 'daily_matches_viewed';
 
 export interface AnalyticsEvent {
   name: EventName;
