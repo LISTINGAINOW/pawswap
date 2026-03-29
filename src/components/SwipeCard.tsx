@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { Heart, X, MapPin, Info, Share2, Sparkles } from 'lucide-react';
 import { hapticMedium, hapticSuccess } from '@/lib/haptics';
 import Image from 'next/image';
@@ -18,10 +18,12 @@ interface Props {
   isTop: boolean;
   quizAnswers?: Answer[];
   quizDone?: boolean;
+  isFirstCard?: boolean;
 }
 
-export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTakeQuiz, isTop, quizAnswers = [], quizDone = false }: Props) {
+export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTakeQuiz, isTop, quizAnswers = [], quizDone = false, isFirstCard = false }: Props) {
   const compatPct = quizDone && quizAnswers.length > 0 ? getCompatibilityPct(pet, quizAnswers) : null;
+  const [showHints, setShowHints] = useState(true);
   const [exitX, setExitX] = useState(0);
   const [showOverlay, setShowOverlay] = useState<'like' | 'nope' | null>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -104,7 +106,12 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
       aria-label={isTop ? `${pet.name}, ${pet.breed}, ${pet.age}, ${pet.gender}` : undefined}
       aria-roledescription={isTop ? 'swipe card' : undefined}
     >
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-black/5">
+      <motion.div
+        className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-black/5"
+        initial={isFirstCard ? { y: 24, opacity: 0 } : false}
+        animate={isFirstCard ? { y: 0, opacity: 1 } : undefined}
+        transition={isFirstCard ? { type: 'spring', stiffness: 400, damping: 15, delay: 0.2 } : undefined}
+      >
         {/* Photo */}
         <div className="relative min-h-0 flex-1 w-full">
           <Image
@@ -283,6 +290,24 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
               </button>
             </div>
           )}
+
+          {/* Swipe hint arrows — only for first card, auto-fade after 3 loops */}
+          {isFirstCard && isTop && (
+            <AnimatePresence>
+              {showHints && (
+                <motion.div
+                  className="flex items-center justify-center gap-8 pb-1 pt-0.5"
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ repeat: 3, duration: 1.2 }}
+                  onAnimationComplete={() => setShowHints(false)}
+                  aria-hidden="true"
+                >
+                  <span className="text-xs font-medium text-gray-400">← Skip</span>
+                  <span className="text-xs font-medium text-gray-400">Save →</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
 
         {/* Animated overlays for button swipes */}
@@ -320,7 +345,7 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
             </motion.div>
           </motion.div>
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

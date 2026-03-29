@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, RotateCcw, SlidersHorizontal, MapPin, RefreshCw, Loader2, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 import OnboardingSlides from '@/components/OnboardingSlides';
@@ -26,6 +27,8 @@ const PetQuiz = dynamic(() => import('@/components/PetQuiz'), { ssr: false });
 const AdoptionTips = dynamic(() => import('@/components/AdoptionTips'), { ssr: false });
 const PetOfTheDay = dynamic(() => import('@/components/PetOfTheDay'), { ssr: false });
 const QuizResults = dynamic(() => import('@/components/QuizResults'), { ssr: false });
+const QuizCelebration = dynamic(() => import('@/components/QuizCelebration'), { ssr: false });
+const QuizPrompt = dynamic(() => import('@/components/QuizPrompt'), { ssr: false });
 const DemoBanner = dynamic(() => import('@/components/DemoBanner'), { ssr: false });
 const Confetti = dynamic(() => import('@/components/Confetti'), { ssr: false });
 // SuccessStories removed from main swipe view (clutters card UX on small screens)
@@ -39,7 +42,7 @@ const WelcomeBack = dynamic(() => import('@/components/WelcomeBack'), { ssr: fal
 const WeeklyDigestPrompt = dynamic(() => import('@/components/WeeklyDigestPrompt'), { ssr: false });
 const PupularWrapped = dynamic(() => import('@/components/PupularWrapped'), { ssr: false });
 
-type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
+type View = 'onboarding' | 'location' | 'quiz' | 'quiz-celebration' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
 type SizeFilter = 'all' | 'Small' | 'Medium' | 'Large' | 'Extra Large';
 type AgeFilter = 'all' | 'baby' | 'young' | 'adult' | 'senior';
@@ -87,6 +90,17 @@ export default function Home() {
   const [heartPulse, setHeartPulse] = useState(false);
   const { streak, recordView } = useStreak();
   const lastSwipeRef = useRef<number>(0);
+  const firstPetShownRef = useRef(false);
+
+  // Onboarding delight states
+  const [sessionSwipeCount, setSessionSwipeCount] = useState(0);
+  const [showQuizPrompt, setShowQuizPrompt] = useState(false);
+  const [quizPromptShown, setQuizPromptShown] = useState(false);
+  const [isFirstPetSession, setIsFirstPetSession] = useState(false);
+  const [firstPetToastPet, setFirstPetToastPet] = useState<Pet | null>(null);
+  const [isFirstFavToast, setIsFirstFavToast] = useState(false);
+  const [isFifthFavToast, setIsFifthFavToast] = useState(false);
+  const [storiesViewed, setStoriesViewed] = useState(false);
 
   // Achievement tracking
   const userStats: UserStats = {
@@ -155,6 +169,14 @@ export default function Home() {
     const savedAnswers = safeGetJSON<Answer[]>('pupular-quiz-answers');
     if (savedAnswers) setQuizAnswers(savedAnswers);
 
+    // Check if first pet session (user just completed onboarding or has no history)
+    if (!safeGet('pupular-first-pet-shown')) {
+      setIsFirstPetSession(true);
+    }
+
+    // Check if stories were viewed
+    if (safeGet('pupular-stories-viewed')) setStoriesViewed(true);
+
     const savedFilters = safeGetJSON<{
       animalFilter?: AnimalFilter;
       sizeFilter?: SizeFilter;
@@ -200,6 +222,14 @@ export default function Home() {
   useEffect(() => {
     if (mounted) safeSet('pupular-share-count', String(shareCount));
   }, [shareCount, mounted]);
+
+  // Show quiz prompt after 3 swipes (once per session)
+  useEffect(() => {
+    if (sessionSwipeCount >= 3 && !quizDone && !quizPromptShown) {
+      setShowQuizPrompt(true);
+      setQuizPromptShown(true);
+    }
+  }, [sessionSwipeCount, quizDone, quizPromptShown]);
 
   // Fetch pets with exponential backoff (1s → 2s → 4s, max 3 retries)
   const fetchPets = useCallback(async (loc: UserLocation) => {
@@ -285,6 +315,18 @@ export default function Home() {
     });
   }, [filteredPets]);
 
+  // Show first pet welcome toast (once ever, after filteredPets is available)
+  useEffect(() => {
+    if (!firstPetShownRef.current && filteredPets.length > 0 && view === 'swipe' && isFirstPetSession) {
+      firstPetShownRef.current = true;
+      setFirstPetToastPet(filteredPets[0]);
+      safeSet('pupular-first-pet-shown', 'true');
+      setIsFirstPetSession(false);
+      // Auto-dismiss after 4 seconds
+      setTimeout(() => setFirstPetToastPet(null), 4000);
+    }
+  }, [filteredPets, view, isFirstPetSession]);
+
   const handleSwipeRight = useCallback(() => {
     // Throttle: max 1 swipe per 400ms to prevent spam
     const now = Date.now();
@@ -293,18 +335,34 @@ export default function Home() {
 
     const pet = filteredPets[0];
     if (pet) {
+      const newFavCount = favorites.length + 1;
       setFavorites((prev) => [...prev, pet]);
       setLastSaved(pet);
       setShowConfetti(true);
       setTotalSwiped(n => n + 1);
+      setSessionSwipeCount(n => n + 1);
       recordView();
       setAnnouncement(`Saved ${pet.name} to favorites`);
       setHeartPulse(true);
       setTimeout(() => setHeartPulse(false), 600);
       trackEvent('pet_swiped_right', { petId: pet.id, petName: pet.name, breed: pet.breed });
       trackEvent('pet_favorited', { petId: pet.id, petName: pet.name, breed: pet.breed });
+
+      // First fav celebration (only once ever)
+      if (newFavCount === 1 && !safeGet('pupular-first-fav-toasted')) {
+        setIsFirstFavToast(true);
+        setIsFifthFavToast(false);
+        safeSet('pupular-first-fav-toasted', 'true');
+      } else if (newFavCount === 5 && !safeGet('pupular-fifth-fav-toasted')) {
+        setIsFifthFavToast(true);
+        setIsFirstFavToast(false);
+        safeSet('pupular-fifth-fav-toasted', 'true');
+      } else {
+        setIsFirstFavToast(false);
+        setIsFifthFavToast(false);
+      }
     }
-  }, [filteredPets, recordView]);
+  }, [filteredPets, favorites.length, recordView]);
 
   const handleSwipeLeft = useCallback(() => {
     // Throttle: max 1 swipe per 400ms to prevent spam
@@ -316,6 +374,7 @@ export default function Home() {
     if (pet) {
       setPassed((prev) => [...prev, pet.id]);
       setTotalSwiped(n => n + 1);
+      setSessionSwipeCount(n => n + 1);
       recordView();
       setAnnouncement(`Passed on ${pet.name}`);
       trackEvent('pet_swiped_left', { petId: pet.id, petName: pet.name, breed: pet.breed });
@@ -385,9 +444,19 @@ export default function Home() {
           safeSet('pupular-quiz-done', 'true');
           safeSetJSON('pupular-quiz-answers', answers);
           trackEvent('quiz_completed', { matchCount: matches.length });
-          setView('quiz-results');
+          setView('quiz-celebration');
         }}
         onSkip={() => setView('swipe')}
+      />
+    );
+  }
+
+  // Quiz celebration
+  if (view === 'quiz-celebration') {
+    return (
+      <QuizCelebration
+        answers={quizAnswers}
+        onContinue={() => setView('quiz-results')}
       />
     );
   }
@@ -420,6 +489,8 @@ export default function Home() {
         onCompare={(pets) => { setComparePets(pets); setView('swipe'); }}
         quizAnswers={quizAnswers}
         quizDone={quizDone}
+        totalFavorited={favorites.length}
+        storiesViewed={storiesViewed}
       />
     );
   }
@@ -489,6 +560,16 @@ export default function Home() {
           >
             🏆
           </button>
+          {!quizDone && (
+            <button
+              type="button"
+              onClick={() => setView('quiz')}
+              aria-label="Take quiz for better matches"
+              className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition hover:shadow-md text-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+            >
+              🧠
+            </button>
+          )}
         </div>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-sage-700">🐾 Pupular</h1>
@@ -539,8 +620,8 @@ export default function Home() {
           {loading ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               <Loader2 className="h-12 w-12 animate-spin text-sage-400" />
-              <h2 className="mt-4 text-xl font-bold text-gray-700">Finding pets near you...</h2>
-              <p className="mt-2 text-sm text-gray-400">Searching shelters in your area</p>
+              <h2 className="mt-4 text-xl font-bold text-gray-700">Loading pets...</h2>
+              <p className="mt-2 text-sm text-gray-400">Finding your matches nearby</p>
             </div>
           ) : apiError ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
@@ -633,6 +714,14 @@ export default function Home() {
                     >
                       {quizDone ? '🧠 Retake Quiz' : '🧠 Take the Quiz'}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setView('location')}
+                      className="flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-200 px-6 py-3 font-semibold text-gray-600 hover:bg-gray-50"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Change location
+                    </button>
                   </div>
                 </>
               )}
@@ -662,6 +751,7 @@ export default function Home() {
                 isTop={true}
                 quizAnswers={quizAnswers}
                 quizDone={quizDone}
+                isFirstCard={isFirstPetSession}
               />
             </>
           )}
@@ -721,7 +811,38 @@ export default function Home() {
       )}
 
       {/* Match toast */}
-      <MatchToast pet={lastSaved} onDismiss={() => setLastSaved(null)} />
+      <MatchToast
+        pet={lastSaved}
+        isFirstFav={isFirstFavToast}
+        isFifthFav={isFifthFavToast}
+        onDismiss={() => { setLastSaved(null); setIsFirstFavToast(false); setIsFifthFavToast(false); }}
+      />
+
+      {/* First pet welcome toast */}
+      <AnimatePresence>
+        {firstPetToastPet && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-4 right-4 z-40 mx-auto max-w-sm"
+          >
+            <div role="alert" className="rounded-2xl bg-white px-5 py-3 shadow-xl ring-1 ring-black/5 flex items-center gap-3">
+              <span className="text-2xl">{firstPetToastPet.type === 'dog' ? '🐕' : '🐈'}</span>
+              <p className="text-sm font-medium text-gray-800">
+                Here&apos;s <strong>{firstPetToastPet.name}</strong>! Swipe left to skip, right to save ❤️
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quiz prompt after 3 swipes */}
+      <QuizPrompt
+        show={showQuizPrompt}
+        onTakeQuiz={() => { setShowQuizPrompt(false); setView('quiz'); }}
+        onDismiss={() => setShowQuizPrompt(false)}
+      />
 
       {/* Confetti on match (#3) */}
       <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
