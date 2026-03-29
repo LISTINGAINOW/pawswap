@@ -40,7 +40,7 @@ export default function LocationPrompt({ onLocationSet }: Props) {
       },
       (err) => {
         if (err.code === err.PERMISSION_DENIED) {
-          setError('Location access was denied. Please enter a zip code instead.');
+          setError('No problem! Enter your zip code below to find pets near you.');
         } else {
           setError('Could not get your location. Please try entering a zip code.');
         }
@@ -141,8 +141,8 @@ export default function LocationPrompt({ onLocationSet }: Props) {
         </div>
 
         <p className="mt-8 text-xs text-gray-400">
-          We use your location to find adoptable pets nearby.
-          <br />Your location is stored locally on your device to remember your preference. It is never sent to Pupular servers or shared with third parties.
+          We show pets near you — no location data is sent to our servers.
+          <br />Your location is stored locally on your device to remember your preference. It is never shared with third parties.
         </p>
       </div>
     </div>

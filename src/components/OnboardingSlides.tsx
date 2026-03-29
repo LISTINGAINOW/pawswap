@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Heart, ArrowLeftRight, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface Props {
   onComplete: () => void;
@@ -12,59 +12,31 @@ const slides = [
   {
     emoji: '🐾',
     title: 'Meet your match',
-    description: 'Swipe through adorable pets near you looking for forever homes.',
-    color: 'bg-sage-100',
-    accent: 'bg-sage-500',
+    description: 'Discover adorable pets near you who are looking for their forever homes.',
   },
   {
-    emoji: '👉',
-    icon: ArrowLeftRight,
-    title: 'Swipe to decide',
-    description: 'Swipe right to save a pet you love. Swipe left to keep looking. It\'s that easy.',
-    color: 'bg-warm-100',
-    accent: 'bg-warm-500',
+    emoji: '👆',
+    title: 'Swipe like you know them',
+    description: 'Swipe right to save a pet you love. Swipe left to keep looking. Simple as that.',
   },
   {
     emoji: '❤️',
-    icon: Heart,
-    title: 'Save your favorites',
-    description: 'All your saved pets in one place with shelter contact info so you can apply to adopt.',
-    color: 'bg-blush-100',
-    accent: 'bg-blush-500',
+    title: 'Find your pet',
+    description: 'All your saved pets in one place — with shelter info so you can reach out and adopt.',
   },
   {
     emoji: '🏠',
-    icon: Star,
-    title: 'Find them a home',
-    description: 'Every swipe brings an animal one step closer to a loving family. Ready?',
-    color: 'bg-sky-100',
-    accent: 'bg-sky-500',
+    title: 'Help shelters',
+    description: 'Every swipe helps connect animals with loving families. Ready to find your match?',
   },
 ];
 
-const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -300 : 300,
-    opacity: 0,
-  }),
-};
-
 export default function OnboardingSlides({ onComplete }: Props) {
   const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState(1);
   const slide = slides[current];
 
   const handleNext = () => {
     if (current < slides.length - 1) {
-      setDirection(1);
       setCurrent(current + 1);
     } else {
       onComplete();
@@ -73,15 +45,14 @@ export default function OnboardingSlides({ onComplete }: Props) {
 
   const handleBack = () => {
     if (current > 0) {
-      setDirection(-1);
       setCurrent(current - 1);
     }
   };
 
+  const progressPct = ((current + 1) / slides.length) * 100;
+
   return (
-    <div
-      className={`flex min-h-screen flex-col items-center justify-between px-8 py-12 transition-colors duration-500 ${slide.color}`}
-    >
+    <div className="flex min-h-screen flex-col items-center justify-between bg-sage-50 px-8 py-12">
       {/* Top row: back + skip */}
       <div className="flex w-full items-center justify-between">
         {current > 0 ? (
@@ -96,28 +67,24 @@ export default function OnboardingSlides({ onComplete }: Props) {
         ) : (
           <div className="h-10 w-10" />
         )}
-        {current < slides.length - 1 && (
-          <button
-            type="button"
-            onClick={onComplete}
-            className="text-sm font-medium text-gray-400 hover:text-gray-600"
-          >
-            Skip
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onComplete}
+          className="text-sm font-medium text-gray-400 hover:text-gray-600"
+        >
+          Skip to swiping
+        </button>
       </div>
 
       {/* Animated slide content */}
       <div className="relative flex w-full flex-col items-center overflow-hidden text-center">
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait">
           <motion.div
             key={current}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
             className="flex flex-col items-center"
           >
             <motion.div
@@ -136,21 +103,18 @@ export default function OnboardingSlides({ onComplete }: Props) {
 
       {/* Navigation */}
       <div className="flex w-full flex-col items-center gap-6">
-        {/* Dots */}
-        <div className="flex gap-2" role="tablist" aria-label="Onboarding steps">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              role="tab"
-              aria-selected={i === current}
-              aria-label={`Step ${i + 1} of ${slides.length}`}
-              onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }}
-              className={`h-2 rounded-full transition-all ${
-                i === current ? 'w-8 bg-sage-500' : 'w-2 bg-gray-300'
-              }`}
+        {/* Progress bar */}
+        <div className="w-full max-w-xs" aria-label={`Step ${current + 1} of ${slides.length}`}>
+          <div className="mb-1.5 flex justify-end">
+            <span className="text-xs font-medium text-gray-400">{current + 1}/{slides.length}</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+            <motion.div
+              className="h-full rounded-full bg-sage-500"
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
             />
-          ))}
+          </div>
         </div>
 
         {/* Button */}
@@ -159,7 +123,7 @@ export default function OnboardingSlides({ onComplete }: Props) {
           onClick={handleNext}
           className="flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-sage-500 py-4 text-lg font-semibold text-white transition hover:bg-sage-600 active:scale-95"
         >
-          {current === slides.length - 1 ? "Let's go!" : 'Next'}
+          {current === slides.length - 1 ? "Let's find my pet!" : 'Next'}
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
