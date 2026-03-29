@@ -146,9 +146,10 @@ export function AchievementBadge({ achievement, onDismiss }: BadgeProps) {
 interface TrophyCaseProps {
   unlockedIds: string[];
   onClose: () => void;
+  onShowWrapped?: () => void;
 }
 
-export function TrophyCase({ unlockedIds, onClose }: TrophyCaseProps) {
+export function TrophyCase({ unlockedIds, onClose, onShowWrapped }: TrophyCaseProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
@@ -165,6 +166,17 @@ export function TrophyCase({ unlockedIds, onClose }: TrophyCaseProps) {
             <X className="h-5 w-5 text-gray-400" />
           </button>
         </div>
+        {onShowWrapped && (
+          <div className="border-b border-gray-100 px-5 py-3">
+            <button
+              type="button"
+              onClick={() => { onClose(); onShowWrapped(); }}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 py-3 text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
+            >
+              ✨ View My Pupular Wrapped
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 p-5">
           {ACHIEVEMENTS.map((a) => {
             const unlocked = unlockedIds.includes(a.id);

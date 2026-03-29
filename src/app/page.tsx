@@ -35,6 +35,8 @@ const QuickReactions = dynamic(() => import('@/components/QuickReactions'), { ss
 const NotificationPrompt = dynamic(() => import('@/components/NotificationPrompt'), { ssr: false });
 const BackToTop = dynamic(() => import('@/components/BackToTop'), { ssr: false });
 const WelcomeBack = dynamic(() => import('@/components/WelcomeBack'), { ssr: false });
+const WeeklyDigestPrompt = dynamic(() => import('@/components/WeeklyDigestPrompt'), { ssr: false });
+const PupularWrapped = dynamic(() => import('@/components/PupularWrapped'), { ssr: false });
 
 type View = 'onboarding' | 'location' | 'quiz' | 'quiz-results' | 'swipe' | 'favorites' | 'filters';
 type AnimalFilter = 'all' | 'dog' | 'cat';
@@ -76,6 +78,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [comparePets, setComparePets] = useState<[Pet, Pet] | null>(null);
   const [showTrophyCase, setShowTrophyCase] = useState(false);
+  const [showWrapped, setShowWrapped] = useState(false);
   const [totalSwiped, setTotalSwiped] = useState(0);
   const [shareCount, setShareCount] = useState(0);
   const [quizDone, setQuizDone] = useState(false);
@@ -95,6 +98,14 @@ export default function Home() {
     shareCount,
   };
   const { newAchievement, dismissAchievement, unlockedIds, allAchievements } = useAchievements(userStats);
+
+  // Compute top breed from favorites
+  const topBreed = (() => {
+    if (favorites.length === 0) return 'N/A';
+    const counts: Record<string, number> = {};
+    favorites.forEach(p => { counts[p.breed] = (counts[p.breed] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'N/A';
+  })();
 
   // Mount check + restore from localStorage
   useEffect(() => {
@@ -691,10 +702,35 @@ export default function Home() {
       <AchievementBadge achievement={newAchievement} onDismiss={dismissAchievement} />
 
       {/* Trophy case modal */}
-      {showTrophyCase && <TrophyCase unlockedIds={unlockedIds} onClose={() => setShowTrophyCase(false)} />}
+      {showTrophyCase && (
+        <TrophyCase
+          unlockedIds={unlockedIds}
+          onClose={() => setShowTrophyCase(false)}
+          onShowWrapped={() => setShowWrapped(true)}
+        />
+      )}
+
+      {/* Pupular Wrapped */}
+      {showWrapped && (
+        <PupularWrapped
+          stats={{
+            totalSwiped,
+            totalFavorited: favorites.length,
+            topBreed,
+            streakDays: streak.currentStreak,
+            quizCompleted: quizDone,
+            dogsLoved: favorites.filter(p => p.type === 'dog').length,
+            catsLoved: favorites.filter(p => p.type === 'cat').length,
+          }}
+          onClose={() => setShowWrapped(false)}
+        />
+      )}
 
       {/* Notification prompt after 3rd save */}
       <NotificationPrompt favoriteCount={favorites.length} />
+
+      {/* Weekly digest prompt after 10 swipes */}
+      <WeeklyDigestPrompt totalSwiped={totalSwiped} />
 
       {/* Floating back to top */}
       <BackToTop />
