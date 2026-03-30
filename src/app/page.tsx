@@ -563,7 +563,7 @@ export default function Home() {
       </div>
 
       {/* Header */}
-      <header className={`flex items-center justify-between px-5 pb-2 pt-4 ${darkMode ? 'bg-gray-900' : ''}`}>
+      <header className={`flex items-center justify-between px-5 pb-1 pt-2 ${darkMode ? 'bg-gray-900' : ''}`}>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -644,13 +644,7 @@ export default function Home() {
       {/* Demo mode banner */}
       <DemoBanner source={dataSource} />
 
-      {/* Welcome back message */}
-      <WelcomeBack favoriteCount={favorites.length} />
-
-      {/* Daily streak (#10) */}
-      <DailyStreak streak={streak} />
-
-      {/* Daily Matches */}
+      {/* Daily Matches — only shown when toggled */}
       {showDailyMatches && (
         <DailyMatches
           pets={filteredPets.length > 0 ? filteredPets : allPets}
@@ -662,15 +656,9 @@ export default function Home() {
         />
       )}
 
-      {/* Pet of the Day */}
-      <PetOfTheDay onSelect={(pet) => handleSelectPet(pet)} />
-
-      {/* Adoption tip */}
-      <AdoptionTips />
-
       {/* Card stack */}
       <main id="main-content" className="flex flex-1 min-h-0 items-center justify-center px-4 py-2">
-        <div className="relative w-full max-w-[380px]" style={{ height: 'clamp(400px, calc(100svh - 300px), 620px)' }}>
+        <div className="relative w-full max-w-[400px]" style={{ height: 'clamp(480px, calc(100svh - 200px), 720px)' }}>
           {loading ? (
             <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-white p-8 text-center shadow-sm">
               <Loader2 className="h-12 w-12 animate-spin text-sage-400" />
@@ -812,16 +800,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Quick reactions */}
-      {filteredPets.length > 0 && (
-        <QuickReactions petName={filteredPets[0]?.name || ''} />
-      )}
-
-      {/* Swipe stats + milestones */}
-      <SwipeStats totalSwiped={totalSwiped} favorites={favorites.length} currentPet={filteredPets[0] || null} />
-
       {/* Bottom bar */}
-      <footer className="flex flex-col items-center gap-1 px-5 pb-4 pt-1">
+      <footer className="flex flex-col items-center gap-1 px-5 pb-3 pt-1">
         <div className="flex items-center justify-center gap-6">
           {passed.length > 0 && (
             <button

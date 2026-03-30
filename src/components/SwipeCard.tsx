@@ -73,16 +73,16 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
     const threshold = 100;
     if (info.offset.x > threshold) {
       hapticSuccess();
-      setExitX(500);
+      setExitX(800);
       setShowOverlay('like');
       safeSet('pupular-has-swiped', 'true');
-      setTimeout(onSwipeRight, 300);
+      setTimeout(onSwipeRight, 250);
     } else if (info.offset.x < -threshold) {
       hapticMedium();
-      setExitX(-500);
+      setExitX(-800);
       setShowOverlay('nope');
       safeSet('pupular-has-swiped', 'true');
-      setTimeout(onSwipeLeft, 300);
+      setTimeout(onSwipeLeft, 250);
     }
   };
 
@@ -91,14 +91,14 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
     setShowHints(false);
     if (direction === 'right') {
       hapticSuccess();
-      setExitX(500);
+      setExitX(800);
       setShowOverlay('like');
-      setTimeout(onSwipeRight, 300);
+      setTimeout(onSwipeRight, 250);
     } else {
       hapticMedium();
-      setExitX(-500);
+      setExitX(-800);
       setShowOverlay('nope');
-      setTimeout(onSwipeLeft, 300);
+      setTimeout(onSwipeLeft, 250);
     }
   };
 
@@ -137,10 +137,10 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
       style={{ x, rotate, scale, zIndex: isTop ? 10 : 0, willChange: 'transform' }}
       drag={isTop ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragElastic={0.7}
       onDragEnd={handleDragEnd}
       animate={{ x: exitX }}
-      transition={{ type: 'spring', stiffness: 260, damping: 28, mass: 0.8 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22, mass: 0.6 }}
       role={isTop ? 'article' : undefined}
       aria-label={isTop ? `${pet.name}, ${pet.breed}, ${pet.age}, ${pet.gender}` : undefined}
       aria-roledescription={isTop ? 'swipe card' : undefined}
@@ -151,13 +151,13 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
         animate={isFirstCard ? { y: 0, opacity: 1 } : undefined}
         transition={isFirstCard ? { type: 'spring', stiffness: 400, damping: 15, delay: 0.2 } : undefined}
       >
-        {/* Photo */}
-        <div className="relative min-h-0 flex-1 w-full">
+        {/* Photo — takes all available space, image fills and centers on the pet */}
+        <div className="relative min-h-0 flex-1 w-full overflow-hidden">
           <Image
             src={imgError ? '/placeholder-pet.png' : (pet.photos[photoIndex] || pet.photo)}
             alt={`${pet.name} — ${pet.breed}`}
             fill
-            className="object-cover"
+            className="object-cover object-top"
             sizes="(max-width: 768px) 100vw, 400px"
             priority={isTop}
             loading={isTop ? 'eager' : 'lazy'}
@@ -294,26 +294,23 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
           </div>
         </div>
 
-        {/* Info section — fixed height so buttons always fit regardless of card height */}
-        <div className="flex h-[165px] flex-none flex-col justify-between p-4">
-          <div>
-            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Traits">
-              {pet.traits.slice(0, 4).map((trait) => (
-                <span
-                  key={trait}
-                  role="listitem"
-                  className="rounded-full bg-sage-100 px-2.5 py-1 text-xs font-medium text-sage-700"
-                >
-                  {trait}
-                </span>
-              ))}
-              {pet.goodWith.length > 0 && (
-                <span role="listitem" className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-600">
-                  Good with {pet.goodWith[0].toLowerCase()}
-                </span>
-              )}
-            </div>
-            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">{pet.description}</p>
+        {/* Info section — compact to maximize photo space */}
+        <div className="flex h-[110px] flex-none flex-col justify-between px-4 py-3">
+          <div className="flex flex-wrap gap-1.5" role="list" aria-label="Traits">
+            {pet.traits.slice(0, 3).map((trait) => (
+              <span
+                key={trait}
+                role="listitem"
+                className="rounded-full bg-sage-100 px-2.5 py-1 text-xs font-medium text-sage-700"
+              >
+                {trait}
+              </span>
+            ))}
+            {pet.goodWith.length > 0 && (
+              <span role="listitem" className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-600">
+                Good with {pet.goodWith[0].toLowerCase()}
+              </span>
+            )}
           </div>
 
           {/* Action buttons */}
