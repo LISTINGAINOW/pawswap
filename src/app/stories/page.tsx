@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'Pupular',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1503256207526-0d5523f31580?w=1200&h=630&fit=crop',
+        url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1200&h=630&fit=crop',
         width: 1200,
         height: 630,
         alt: 'Max the Border Collie Mix — one of Pupular\'s adoption success stories',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Adoption Stories | Pupular',
     description: 'Real stories from real adopters. Meet the pets who found their forever homes through Pupular.',
-    images: ['https://images.unsplash.com/photo-1503256207526-0d5523f31580?w=1200&h=630&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1200&h=630&fit=crop'],
   },
 };
 
@@ -38,7 +38,7 @@ const stories = [
     location: 'Portland, OR',
     type: 'dog' as const,
     breed: 'Border Collie Mix',
-    photo: 'https://images.unsplash.com/photo-1503256207526-0d5523f31580?w=600&h=700&fit=crop',
+    photo: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=700&fit=crop',
     before: 'Max was found wandering a highway overpass, thin and frightened, wearing a fraying collar with no tag. He spent six weeks at Happy Tails Rescue, too anxious to let anyone pet him.',
     after: 'Now Max sprints across the Johnsons\' backyard every morning, herds their two kids to the dinner table (whether they like it or not), and has claimed the left half of the family couch as his permanent territory.',
     quote: 'He was so scared the first night. By morning he was sleeping on my feet. I cried the whole time.',
