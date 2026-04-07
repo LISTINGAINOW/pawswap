@@ -22,7 +22,9 @@ const nextConfig = {
     ];
   },
   images: {
-    unoptimized: process.env.CAPACITOR_BUILD ? true : false,
+    // Disable Vercel image optimization to avoid exceeding Hobby plan limits
+    // (1,000 source images/month free). External images are served directly.
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'dl5zpyw5k3jeb.cloudfront.net' },
       { protocol: 'https', hostname: 'photos.petfinder.com' },
