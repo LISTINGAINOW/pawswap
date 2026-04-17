@@ -10,6 +10,9 @@ import type { Answer } from '@/lib/compatibility';
 import { getCompatibilityPct } from '@/lib/compatibility';
 import FeaturedBadge from './FeaturedBadge';
 import { safeGet, safeSet } from '@/utils/storage';
+import { trackEvent } from '@/lib/analytics';
+import { getPetShareText, getPetUrl } from '@/lib/pet-links';
+import { getOrCreateRefCode } from '@/lib/referrals';
 
 function seededNum(petId: string, salt: string, min: number, max: number): number {
   let hash = 0;
@@ -105,9 +108,9 @@ export default function SwipeCard({ pet, onSwipeLeft, onSwipeRight, onInfo, onTa
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticMedium();
-    const typeEmoji = pet.type === 'dog' ? '🐕' : '🐈';
-    const shareText = `Meet ${pet.name} ${typeEmoji} — ${pet.age} ${pet.breed} looking for a forever home! Check them out on Pupular 🐾`;
-    const shareUrl = 'https://www.pupular.app';
+    const shareText = getPetShareText(pet);
+    const shareUrl = getPetUrl(pet.id, getOrCreateRefCode());
+    trackEvent('share_pet', { petId: pet.id, petName: pet.name, context: 'swipe_card' });
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({

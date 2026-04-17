@@ -752,3 +752,7 @@ export const mockPets: Pet[] = [
     description: 'Duchess is basically a serval that lives in your house. She\'s tall, spotted, can jump 8 feet vertically, and plays in water. She\'s not a cat — she\'s an experience. Not for beginners.', traits: ['Spayed', 'Vaccinated', 'Exotic', 'Jumps 8 feet'], goodWith: ['Experienced cat owners', 'No small children'], adoptionFee: '$800', adoptionUrl: '#',
   },
 ];
+
+export function getPetById(id: string): Pet | undefined {
+  return mockPets.find((pet) => pet.id === id);
+}
