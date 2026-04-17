@@ -90,6 +90,15 @@ export default function SupportPage() {
               <Link href="/about" className="text-sage-700 hover:underline font-medium">
                 About Pupular →
               </Link>
+              <Link href="/for-shelters" className="text-sage-700 hover:underline font-medium">
+                For Shelters →
+              </Link>
+              <Link href="/partners" className="text-sage-700 hover:underline font-medium">
+                Partner with Pupular →
+              </Link>
+              <Link href="/insurance" className="text-sage-700 hover:underline font-medium">
+                Pet Insurance Guide →
+              </Link>
               <Link href="/terms" className="text-sage-700 hover:underline font-medium">
                 Terms of Service →
               </Link>

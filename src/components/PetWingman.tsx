@@ -6,6 +6,8 @@ import { hapticMedium } from '@/lib/haptics';
 import { trackEvent } from '@/lib/analytics';
 import type { Pet } from '@/data/pets';
 import { safeSet } from '@/utils/storage';
+import { getPetShareText, getPetUrl } from '@/lib/pet-links';
+import { getOrCreateRefCode } from '@/lib/referrals';
 
 interface Props {
   pet: Pet;
@@ -19,8 +21,8 @@ export default function PetWingman({ pet, variant = 'detail' }: Props) {
     e.stopPropagation();
     hapticMedium();
 
-    const url = `https://pupular.app/vote/${pet.id}`;
-    const text = `I'm thinking about adopting ${pet.name} — a ${pet.age} ${pet.breed}! 🐾 What do you think?`;
+    const url = getPetUrl(pet.id, getOrCreateRefCode());
+    const text = getPetShareText(pet, { context: 'wingman' });
 
     safeSet('pupular-wingman-used', 'true');
     trackEvent('wingman_shared', { petId: pet.id, petName: pet.name });

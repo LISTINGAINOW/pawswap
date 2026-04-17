@@ -4,7 +4,7 @@ import { ArrowLeft, Heart, TrendingUp, Users, BarChart2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'List Your Shelter Pets on Pupular — Free | For Shelters',
-  description: 'List shelter pets online free. Reach thousands of adopters through swipe-based matching. Sign up free and start getting more adoptions today.',
+  description: 'List shelter pets on Pupular for free. Reach mobile-first adopters, share your available animals, and start a shelter partnership conversation.',
 };
 
 const steps = [
@@ -16,30 +16,30 @@ const steps = [
 const benefits = [
   {
     icon: <Users className="h-6 w-6 text-sage-500" />,
-    title: 'Reach Thousands of Adopters',
-    desc: 'Pupular users are actively looking to adopt — not just browsing. Every swipe right is genuine interest.',
+    title: 'Reach mobile-first adopters',
+    desc: 'Pupular is designed for people who would rather swipe through pets on their phone than search a directory.',
   },
   {
     icon: <Heart className="h-6 w-6 text-rose-400" />,
-    title: 'Swipe-Based Matching = Higher Engagement',
-    desc: 'Our format drives 3x more saves per pet than traditional listings. People fall in love before they even visit.',
+    title: 'Give every animal a warmer first impression',
+    desc: 'Photos, personality, and a swipe-friendly format help adopters connect before they ever click through to your shelter.',
   },
   {
     icon: <TrendingUp className="h-6 w-6 text-amber-500" />,
-    title: 'Free Forever for Basic Listings',
-    desc: 'List all your adoptable pets at no cost. Only upgrade if you want featured placement and analytics.',
+    title: 'Start free, expand when it makes sense',
+    desc: 'Free listings keep the barrier low. If featured programs become useful, we can scope them together.',
   },
   {
     icon: <BarChart2 className="h-6 w-6 text-blue-500" />,
-    title: 'Analytics Dashboard',
-    desc: 'See which pets are getting the most attention so you can adjust photos, bios, and pricing. (Coming soon)',
+    title: 'Built for iterative rollout',
+    desc: 'We are actively shaping shelter tooling with partners, including better analytics, featured placement, and easier onboarding.',
   },
 ];
 
-const stats = [
-  { value: '10,000+', label: 'swipes per month' },
-  { value: '500+',    label: 'pets favorited' },
-  { value: '50+',     label: 'adoptions started' },
+const highlights = [
+  { value: 'Free', label: 'basic listing conversations' },
+  { value: 'Mobile-first', label: 'pet discovery experience' },
+  { value: 'Human help', label: 'during onboarding and launch' },
 ];
 
 export default function ForSheltersPage() {
@@ -72,9 +72,9 @@ export default function ForSheltersPage() {
           </a>
         </div>
 
-        {/* Stats */}
+        {/* Highlights */}
         <div className="mb-8 grid grid-cols-3 gap-3">
-          {stats.map((s) => (
+          {highlights.map((s) => (
             <div key={s.label} className="rounded-xl bg-white p-4 text-center ring-1 ring-black/5">
               <p className="text-xl font-black text-sage-600">{s.value}</p>
               <p className="mt-0.5 text-[11px] text-gray-500">{s.label}</p>
@@ -120,7 +120,7 @@ export default function ForSheltersPage() {
         <div className="mb-6 rounded-2xl bg-white p-6 ring-1 ring-black/5 text-center">
           <h3 className="text-lg font-bold text-gray-900">Ready to find your pets their forever homes?</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Email us to get your shelter listed. We&apos;ll set you up within 24 hours.
+            Email us to get your shelter listed and tell us how you currently manage pet data. We&apos;ll help you figure out the cleanest rollout path.
           </p>
           <a
             href="mailto:shelters@pupular.app?subject=I want to list my shelter"
@@ -134,7 +134,7 @@ export default function ForSheltersPage() {
         <div className="rounded-2xl bg-amber-50 p-5 ring-1 ring-amber-200 text-center">
           <p className="text-sm font-semibold text-amber-800">Want more visibility?</p>
           <p className="mt-1 text-sm text-amber-700">
-            Get a Featured badge, priority placement, and analytics with our paid plans.
+            Explore featured shelter partnerships, launch support, and future visibility options.
           </p>
           <Link
             href="/shelters/promote"

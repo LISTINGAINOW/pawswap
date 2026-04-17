@@ -13,21 +13,8 @@ import ShelterMap from './ShelterMap';
 import YourType from './YourType';
 import SupplyChecklist from './SupplyChecklist';
 import FeaturedBadge from './FeaturedBadge';
-
-/** Generate or retrieve a persistent referral code for this user. */
-function getOrCreateRefCode(): string {
-  try {
-    const existing = localStorage.getItem('pupular-ref-code');
-    if (existing) return existing;
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let code = '';
-    for (let i = 0; i < 7; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    localStorage.setItem('pupular-ref-code', code);
-    return code;
-  } catch {
-    return 'pupular';
-  }
-}
+import { getInviteUrl, getPetShareText, getPetUrl } from '@/lib/pet-links';
+import { getOrCreateRefCode } from '@/lib/referrals';
 
 type SortOption = 'date' | 'compatibility' | 'distance' | 'name';
 
@@ -132,10 +119,11 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
   const handleInvite = async () => {
     hapticSuccess();
     const refCode = getOrCreateRefCode();
-    const text = `I have saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'} on Pupular. Help them find homes. Join me: pupular.app/?ref=${refCode}`;
+    const url = getInviteUrl(refCode);
+    const text = `I have saved ${favorites.length} ${favorites.length === 1 ? 'pet' : 'pets'} on Pupular. Help them find homes. Join me: ${url}`;
     trackEvent('referral_sent', { refCode, favoriteCount: favorites.length });
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try { await navigator.share({ title: 'Join me on Pupular 🐾', text, url: `https://www.pupular.app/?ref=${refCode}` }); } catch { /* cancelled */ }
+      try { await navigator.share({ title: 'Join me on Pupular 🐾', text, url }); } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       await navigator.clipboard.writeText(text);
     }
@@ -143,9 +131,9 @@ export default function FavoritesList({ favorites, onRemove, onBack, onSelect, o
 
   const handleSharePet = async (pet: Pet) => {
     hapticLight();
-    const typeEmoji = pet.type === 'dog' ? '🐕' : '🐈';
-    const text = `Meet ${pet.name} ${typeEmoji} — ${pet.age} ${pet.breed} looking for a forever home! Check them out on Pupular 🐾`;
-    const url = pet.adoptionUrl || 'https://www.pupular.app';
+    const text = getPetShareText(pet);
+    const url = getPetUrl(pet.id, getOrCreateRefCode());
+    trackEvent('share_pet', { petId: pet.id, petName: pet.name, context: 'favorites' });
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: `Meet ${pet.name} on Pupular`, text, url }); } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {

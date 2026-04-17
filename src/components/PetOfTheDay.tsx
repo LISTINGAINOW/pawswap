@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { mockPets, Pet } from '@/data/pets';
 import { trackEvent } from '@/lib/analytics';
 import { trackRevenue } from '@/lib/revenue';
+import { getPetShareText, getPetUrl } from '@/lib/pet-links';
+import { getOrCreateRefCode } from '@/lib/referrals';
 
 interface Props {
   onSelect: (pet: Pet) => void;
@@ -53,14 +55,15 @@ export default function PetOfTheDay({ onSelect }: Props) {
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!pet) return;
-    const typeEmoji = pet.type === 'dog' ? '🐕' : '🐈';
-    const text = `⭐ Today's Pet of the Day on Pupular: Meet ${pet.name} ${typeEmoji}!\n${pet.age} ${pet.breed} looking for a forever home.\n\nFind your match at https://www.pupular.app 🐾`;
+    const text = getPetShareText(pet, { context: 'pet-of-the-day' });
+    const url = getPetUrl(pet.id, getOrCreateRefCode());
+    trackEvent('share_pet', { petId: pet.id, petName: pet.name, context: 'pet_of_the_day' });
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title: `Pet of the Day: ${pet.name}`, text, url: 'https://www.pupular.app' });
+        await navigator.share({ title: `Pet of the Day: ${pet.name}`, text, url });
       } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(`${text}\n${url}`);
     }
   };
 
